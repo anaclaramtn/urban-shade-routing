@@ -1,6 +1,8 @@
 # Cidade à Sombra
 
-O **Cidade à Sombra** é um projeto sobre mobilidade a pé, acesso ao transporte coletivo e conforto urbano em Fortaleza.
+O **Cidade à Sombra** é um projeto sobre mobilidade a pé, acesso a pontos de interesse e conforto urbano em Fortaleza.
+
+Nesta etapa, o projeto oferece suporte apenas a paradas de transporte coletivo. Outras categorias de pontos de interesse serão implementadas futuramente.
 
 O site reúne os resultados produzidos até o momento e apresenta um primeiro mapa de demanda potencial associada ao uso dos trechos da rede de pedestres. A análise de exposição solar será incorporada posteriormente.
 
