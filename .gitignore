@@ -1,0 +1,5 @@
+# Notebooks locais e suas saídas incorporadas
+*.ipynb
+
+# Instruções locais para agentes
+**/[Aa][Gg][Ee][Nn][Tt][Ss].[Mm][Dd]
