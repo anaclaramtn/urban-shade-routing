@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Cidade à Sombra: acompanhamento do projeto e resultados da estimativa de demanda potencial nas rotas de caminhada em Fortaleza.">
+  <meta name="theme-color" content="#0b352b">
+  <title>Cidade à Sombra — Acompanhamento do projeto</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+
+  <header>
+    <div class="shell nav">
+      <a class="brand" href="#inicio" aria-label="Cidade à Sombra — início">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>Cidade à Sombra</span>
+      </a>
+      <nav aria-label="Navegação principal">
+        <ul>
+          <li><a href="#numeros">Visão geral</a></li>
+          <li><a href="#mapas">Mapas</a></li>
+          <li><a href="#metodo">Método</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="conteudo">
+    <section class="hero" id="inicio">
+      <div class="shell hero-inner">
+        <p class="eyebrow">Mobilidade à pé em Fortaleza</p>
+        <h1>Cidade à Sombra</h1>
+        <p class="hero-copy">
+          O projeto investiga caminhos para apoiar deslocamentos a pé mais confortáveis em Fortaleza. Nesta primeira etapa, estimei a demanda potencial nos trechos usados para chegar ao transporte coletivo; a exposição solar será incorporada em uma etapa posterior.
+        </p>
+      </div>
+    </section>
+
+    <section class="numbers" id="numeros" aria-labelledby="numeros-titulo">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Panorama do recorte</p>
+            <h2 id="numeros-titulo">Análise em números</h2>
+          </div>
+          <p class="section-intro">
+            Os valores abaixo resumem a rede, os dados populacionais e o resultado da execução atual do projeto em Fortaleza.
+          </p>
+        </div>
+        <div class="numbers-grid">
+          <div class="stat"><strong>88.326</strong><span>nós na rede de pedestres</span></div>
+          <div class="stat"><strong>384.500</strong><span>arestas analisadas na rede</span></div>
+          <div class="stat"><strong>5.262</strong><span>paradas GTFS consideradas</span></div>
+          <div class="stat"><strong>26.835</strong><span>células GHSL com população positiva</span></div>
+          <div class="stat"><strong>44.834</strong><span>arestas que receberam demanda potencial</span></div>
+          <div class="stat"><strong>2,79 mi</strong><span>pessoas nas células positivas do recorte</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="map-section" id="mapas" aria-labelledby="mapa-1-titulo">
+      <div class="shell">
+        <div class="map-lead">
+          <span class="map-index">MAPA 01</span>
+          <div class="map-title">
+            <p class="eyebrow">Demanda potencial</p>
+            <h2 id="mapa-1-titulo">População potencial nas rotas até as paradas</h2>
+            <p>
+              O primeiro mapa foi produzido para visualizar a demanda potencial associada ao uso de cada trecho. A população de cada célula GHSL é encaminhada pela rede de pedestres até uma parada e acumulada nas arestas utilizadas. Esta etapa ainda não contém dados de exposição solar.
+            </p>
+          </div>
+        </div>
+
+        <div class="map-embed">
+          <img
+            src="./assets/mapa_completo.png"
+            alt="Visão geral do mapa de população potencial acumulada nas arestas de Fortaleza."
+          >
+        </div>
+
+        <div class="map-actions">
+          <a class="map-link" href="./maps/mapa_geral_interativo_ghsl_log10.html" target="_blank" rel="noopener">Abrir mapa interativo</a>
+        </div>
+
+        <div class="method-data" aria-labelledby="dados-metodo-titulo">
+          <div class="method-data-head">
+            <h3 id="dados-metodo-titulo">Números da metodologia</h3>
+            <p>
+              Estes indicadores ajudam a verificar a associação entre população, rede e transporte coletivo antes da atribuição da demanda potencial às arestas.
+            </p>
+          </div>
+          <div class="method-data-grid">
+            <div class="method-stat"><strong>5.262</strong><span>paradas associadas a nós</span></div>
+            <div class="method-stat"><strong>0</strong><span>paradas descartadas pelos filtros</span></div>
+            <div class="method-stat"><strong>4.566</strong><span>nós únicos associados a paradas</span></div>
+            <div class="method-stat"><strong>26.835</strong><span>células associadas a nós da rede</span></div>
+            <div class="method-stat"><strong>0</strong><span>células positivas sem nó válido</span></div>
+            <div class="method-stat"><strong>28.776</strong><span>células NoData no raster recortado</span></div>
+            <div class="method-stat"><strong>4.617</strong><span>células com população igual a zero</span></div>
+            <div class="method-stat"><strong>24.864</strong><span>rotas válidas com uma ou mais arestas</span></div>
+            <div class="method-stat"><strong>1.971</strong><span>origens já localizadas em nó de parada</span></div>
+            <div class="method-stat"><strong>0</strong><span>células sem caminho até uma parada</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="method-section" id="metodo" aria-labelledby="metodo-titulo">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Leitura resumida</p>
+            <h2 id="metodo-titulo">Como o resultado foi construído</h2>
+          </div>
+          <p class="section-intro">
+            O indicador representa uma demanda potencial associada ao uso dos trechos, não a quantidade de moradores fisicamente localizada em cada rua.
+          </p>
+        </div>
+        <ol class="method-list">
+          <li>
+            <h3>População e origem</h3>
+            <p>Cada célula populada do GHSL é representada por seu centroide e associada ao nó mais próximo da rede de pedestres.</p>
+          </li>
+          <li>
+            <h3>Rota até o transporte</h3>
+            <p>A rota de menor custo pela rede conecta o nó de origem a um nó associado a uma parada GTFS.</p>
+          </li>
+          <li>
+            <h3>Atribuição aos trechos</h3>
+            <p>A população da célula é atribuída integralmente a cada aresta distinta da rota e somada quando diferentes células utilizam o mesmo trecho.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell footer-row">
+      <span>Cidade à Sombra · Fortaleza, Ceará</span>
+      <span>Resultados da execução atual do projeto.</span>
+    </div>
+  </footer>
+</body>
+</html>
