@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mapa geral interativo</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    html, body, #map { width: 100%; height: 100%; margin: 0; }
+    body { font-family: Arial, sans-serif; }
+    #map { background: #fff; }
+    .map-title, .load-status {
+      padding: 7px 10px;
+      border: 1px solid #aaa;
+      border-radius: 3px;
+      background: rgba(255,255,255,.94);
+      box-shadow: 0 1px 4px rgba(0,0,0,.16);
+    }
+    .map-title { font-size: 14px; font-weight: 700; }
+    .load-status { color: #444; font-size: 12px; }
+    .legend {
+      width: 230px;
+      padding: 8px 10px;
+      border-radius: 3px;
+      background: rgba(255,255,255,.94);
+      box-shadow: 0 1px 4px rgba(0,0,0,.16);
+      color: #333;
+      font-size: 11px;
+      line-height: 1.3;
+    }
+    .legend-gradient {
+      height: 10px;
+      margin: 5px 0 2px;
+      background: linear-gradient(90deg,#440154,#482878,#3e4989,#31688e,#26828e,#1f9e89,#35b779,#6ece58,#b5de2b,#fde725);
+    }
+    .legend-range { display: flex; justify-content: space-between; }
+    .leaflet-tooltip table { border-collapse: collapse; }
+    .leaflet-tooltip th { padding-right: 8px; text-align: left; }
+    @media (max-width: 650px) {
+      .leaflet-control-layers-expanded { max-width: 245px; font-size: 12px; }
+      .legend { width: 185px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="map" aria-label="Mapa interativo das rotas potenciais até as paradas"></div>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+  <script>
+    const map = L.map("map", {
+      center: [-3.793314515, -38.519615315],
+      zoom: 11,
+      preferCanvas: true
+    });
+    map.fitBounds([[-3.89460306, -38.63790294], [-3.69202597, -38.40132769]]);
+    L.control.scale().addTo(map);
+
+    [
+      ["polygons", 300], ["graph", 350], ["links", 400],
+      ["flow", 450], ["points", 500], ["boundary", 550]
+    ].forEach(([name, zIndex]) => {
+      map.createPane(name);
+      map.getPane(name).style.zIndex = zIndex;
+    });
+
+    const viridis = ["#440154", "#482878", "#3e4989", "#31688e", "#26828e", "#1f9e89", "#35b779", "#6ece58", "#b5de2b", "#fde725"];
+
+    function interpolateColor(value, min, max) {
+      const t = Math.max(0, Math.min(1, (value - min) / (max - min)));
+      const position = t * (viridis.length - 1);
+      const index = Math.min(viridis.length - 2, Math.floor(position));
+      const amount = position - index;
+      const a = viridis[index].slice(1).match(/.{2}/g).map(x => parseInt(x, 16));
+      const b = viridis[index + 1].slice(1).match(/.{2}/g).map(x => parseInt(x, 16));
+      return "#" + a.map((x, i) => Math.round(x + (b[i] - x) * amount).toString(16).padStart(2, "0")).join("");
+    }
+
+    function tooltip(properties, fields) {
+      const rows = fields.map(([key, label, digits]) => {
+        let value = properties[key];
+        if (typeof value === "number" && digits !== undefined) value = value.toFixed(digits);
+        return `<tr><th>${label}</th><td>${value ?? "—"}</td></tr>`;
+      }).join("");
+      return `<table>${rows}</table>`;
+    }
+
+    const layers = [
+      {
+        id: "graph", label: "Grafo de fundo", file: "grafo_fundo.topojson", pane: "graph", default: true,
+        style: () => ({ color: "#8f8f8f", opacity: .55, weight: .45 })
+      },
+      {
+        id: "ghslRelevant", label: "GHSL população relevante", file: "ghsl_populacao_relevante.topojson", pane: "polygons",
+        style: () => ({ color: "#2166ac", fillColor: "#2182c9", fillOpacity: .14, weight: .35 }),
+        fields: [["population_raw", "População", 2], ["raster_row", "Linha"], ["raster_col", "Coluna"]]
+      },
+      {
+        id: "ghslZero", label: "GHSL zero", file: "ghsl_zero.topojson", pane: "polygons",
+        style: () => ({ color: "#b2182b", fillColor: "#d7191c", fillOpacity: .16, weight: .25 }),
+        fields: [["population_raw", "População", 2], ["raster_row", "Linha"], ["raster_col", "Coluna"]]
+      },
+      {
+        id: "flow", label: "Arestas — população log10", file: "arestas_fluxo_potencial_log10.topojson", pane: "flow", default: true,
+        style: f => ({ color: interpolateColor(f.properties.edge_population_log10, -2.5081, 3.6587), opacity: .88, weight: 1.15 }),
+        fields: [["edge_id", "Aresta"], ["edge_population", "População potencial", 2], ["edge_population_log10", "log10", 3]]
+      },
+      {
+        id: "centroidOrigin", label: "Associação centroide → origem", file: "associacao_centroide_origem.topojson", pane: "links",
+        style: () => ({ color: "#000", dashArray: "6, 6", opacity: .82, weight: 1.25 }),
+        fields: [["cell_id", "Célula"], ["population", "População", 2], ["distance_centroid_to_node_m", "Distância (m)", 1]]
+      },
+      {
+        id: "centroids", label: "Centros geométricos das células GHSL", file: "centros_celulas_ghsl.topojson", pane: "points",
+        point: (_, latlng) => L.circleMarker(latlng, { pane: "points", radius: 2.5, color: "#111", weight: .7, fillColor: "#fff", fillOpacity: .95 }),
+        fields: [["cell_id", "Célula"], ["population", "População", 2], ["distance_centroid_to_node_m", "Distância (m)", 1]]
+      },
+      {
+        id: "origins", label: "Pontos de origem — população log10", file: "pontos_origem_log10.topojson", pane: "points", default: true,
+        point: (f, latlng) => L.circleMarker(latlng, {
+          pane: "points", radius: originRadius(), weight: 0, fillOpacity: 1,
+          fillColor: interpolateColor(f.properties.population_log10, -3.6547, 3.205)
+        }),
+        fields: [["cell_id", "Célula"], ["population", "População", 2], ["population_log10", "log10", 3]]
+      },
+      {
+        id: "nodeStop", label: "Associação nó → parada GTFS", file: "associacao_no_parada_gtfs.topojson", pane: "links",
+        style: () => ({ color: "#000", dashArray: "6, 6", opacity: .88, weight: 1.4 }),
+        fields: [["bus_stop_id", "Parada"], ["bus_stop_name", "Nome"], ["distance_stop_to_node_m", "Distância (m)", 1]]
+      },
+      {
+        id: "stops", label: "Paradas GTFS (vermelho)", file: "paradas_gtfs.topojson", pane: "points", default: true,
+        point: (_, latlng) => L.circleMarker(latlng, { pane: "points", radius: 4, color: "#8b0000", weight: .45, fillColor: "#d7191c", fillOpacity: .95 }),
+        fields: [["bus_stop_id", "Parada"], ["bus_stop_name", "Nome"]]
+      },
+      {
+        id: "boundary", label: "Limite territorial", file: "limite_territorial.topojson", pane: "boundary",
+        style: () => ({ color: "#111", fillOpacity: 0, opacity: .85, weight: 1.4 })
+      }
+    ];
+
+    function originRadius() {
+      return Math.min(8.5, 4.5 + Math.max(0, map.getZoom() - 11) * .4);
+    }
+
+    const groups = {};
+    const configByGroup = new Map();
+    layers.forEach(config => {
+      const group = L.featureGroup();
+      groups[config.label] = group;
+      config.group = group;
+      configByGroup.set(group, config);
+    });
+
+    L.control.layers({}, groups, { collapsed: false, position: "topright" }).addTo(map);
+
+    const status = L.control({ position: "bottomleft" });
+    status.onAdd = () => {
+      status.element = L.DomUtil.create("div", "load-status");
+      status.element.textContent = "Camadas carregadas sob demanda";
+      return status.element;
+    };
+    status.addTo(map);
+
+    async function loadLayer(config) {
+      if (config.loaded || config.loading) return config.loading;
+      config.loading = (async () => {
+        status.element.textContent = `Carregando: ${config.label}`;
+        const response = await fetch(`./topojson/${config.file}`);
+        if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+        const topology = await response.json();
+        const object = topology.objects[Object.keys(topology.objects)[0]];
+        const geojson = topojson.feature(topology, object);
+        const rendered = L.geoJSON(geojson, {
+          pane: config.pane,
+          style: config.style,
+          pointToLayer: config.point,
+          onEachFeature: config.fields ? (feature, layer) => layer.bindTooltip(tooltip(feature.properties, config.fields), { sticky: true }) : undefined
+        });
+        rendered.addTo(config.group);
+        config.rendered = rendered;
+        config.loaded = true;
+        status.element.textContent = "Camadas carregadas sob demanda";
+      })().catch(error => {
+        config.loading = null;
+        status.element.textContent = `Erro ao carregar: ${config.label}`;
+        console.error(error);
+      });
+      return config.loading;
+    }
+
+    map.on("overlayadd", event => loadLayer(configByGroup.get(event.layer)));
+    map.on("zoomend", () => {
+      const origins = layers.find(layer => layer.id === "origins");
+      if (!origins?.rendered) return;
+      origins.rendered.eachLayer(layer => layer.setRadius?.(originRadius()));
+    });
+
+    layers.filter(config => config.default).forEach(config => {
+      config.group.addTo(map);
+      loadLayer(config);
+    });
+
+    const title = L.control({ position: "topleft" });
+    title.onAdd = () => {
+      const element = L.DomUtil.create("div", "map-title");
+      element.textContent = "Mapa geral interativo";
+      return element;
+    };
+    title.addTo(map);
+
+    function addLegend(position, title, min, max) {
+      const legend = L.control({ position });
+      legend.onAdd = () => {
+        const element = L.DomUtil.create("div", "legend");
+        element.innerHTML = `<strong>${title}</strong><div class="legend-gradient"></div><div class="legend-range"><span>${min}</span><span>${max}</span></div>`;
+        return element;
+      };
+      legend.addTo(map);
+    }
+    addLegend("bottomright", "Arestas — log10 da população potencial", "−2,51", "3,66");
+    addLegend("bottomright", "Origens — log10 da população GHSL", "−3,65", "3,20");
+  </script>
+</body>
+</html>

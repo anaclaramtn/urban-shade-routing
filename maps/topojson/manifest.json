@@ -1,0 +1,76 @@
+{
+  "source": "maps/mapa_geral_interativo_ghsl_log10.html",
+  "quantization": 1000000,
+  "layers": {
+    "grafo_fundo": {
+      "features": 1,
+      "geojson_bytes": 21898854,
+      "topojson_bytes": 9384471,
+      "reduction_percent": 57.1,
+      "file": "maps/topojson/grafo_fundo.topojson"
+    },
+    "ghsl_populacao_relevante": {
+      "features": 26835,
+      "geojson_bytes": 13691797,
+      "topojson_bytes": 8560070,
+      "reduction_percent": 37.5,
+      "file": "maps/topojson/ghsl_populacao_relevante.topojson"
+    },
+    "ghsl_zero": {
+      "features": 4617,
+      "geojson_bytes": 2268690,
+      "topojson_bytes": 1372374,
+      "reduction_percent": 39.5,
+      "file": "maps/topojson/ghsl_zero.topojson"
+    },
+    "arestas_fluxo_potencial_log10": {
+      "features": 44834,
+      "geojson_bytes": 17637134,
+      "topojson_bytes": 12836716,
+      "reduction_percent": 27.2,
+      "file": "maps/topojson/arestas_fluxo_potencial_log10.topojson"
+    },
+    "associacao_centroide_origem": {
+      "features": 26835,
+      "geojson_bytes": 10272453,
+      "topojson_bytes": 7398093,
+      "reduction_percent": 28.0,
+      "file": "maps/topojson/associacao_centroide_origem.topojson"
+    },
+    "centros_celulas_ghsl": {
+      "features": 26835,
+      "geojson_bytes": 8938149,
+      "topojson_bytes": 6878318,
+      "reduction_percent": 23.0,
+      "file": "maps/topojson/centros_celulas_ghsl.topojson"
+    },
+    "pontos_origem_log10": {
+      "features": 26835,
+      "geojson_bytes": 8655209,
+      "topojson_bytes": 6595434,
+      "reduction_percent": 23.8,
+      "file": "maps/topojson/pontos_origem_log10.topojson"
+    },
+    "associacao_no_parada_gtfs": {
+      "features": 5262,
+      "geojson_bytes": 2001896,
+      "topojson_bytes": 1471539,
+      "reduction_percent": 26.5,
+      "file": "maps/topojson/associacao_no_parada_gtfs.topojson"
+    },
+    "paradas_gtfs": {
+      "features": 5262,
+      "geojson_bytes": 1453974,
+      "topojson_bytes": 1100495,
+      "reduction_percent": 24.3,
+      "file": "maps/topojson/paradas_gtfs.topojson"
+    },
+    "limite_territorial": {
+      "features": 1,
+      "geojson_bytes": 74852,
+      "topojson_bytes": 29234,
+      "reduction_percent": 60.9,
+      "file": "maps/topojson/limite_territorial.topojson"
+    }
+  }
+}

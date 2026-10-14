@@ -3,3 +3,7 @@
 
 # Instruções locais para agentes
 **/[Aa][Gg][Ee][Nn][Tt][Ss].[Mm][Dd]
+
+# Cache local do Python
+__pycache__/
+*.py[cod]
