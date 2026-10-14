@@ -5,23 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Cidade à Sombra: acompanhamento do projeto e resultados da estimativa de demanda potencial nas rotas de caminhada em Fortaleza.">
   <meta name="theme-color" content="#0b352b">
-  <title>Cidade à Sombra — Acompanhamento do projeto</title>
+  <title>Cidade à Sombra</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
+  <script>
+    window.MathJax = {
+      tex: { tags: "ams" },
+      chtml: { scale: 1.02 }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
 
-  <header>
-    <div class="shell nav">
+  <header class="site-header">
+    <div class="shell site-nav">
       <a class="brand" href="#inicio" aria-label="Cidade à Sombra — início">
-        <span class="brand-mark" aria-hidden="true"></span>
         <span>Cidade à Sombra</span>
       </a>
       <nav aria-label="Navegação principal">
-        <ul>
+        <ul class="nav-list">
           <li><a href="#numeros">Visão geral</a></li>
-          <li><a href="#mapas">Mapas</a></li>
-          <li><a href="#metodo">Método</a></li>
+          <li class="nav-dropdown">
+            <details>
+              <summary>Etapas</summary>
+              <ul class="nav-submenu">
+                <li><a href="#mapas"><span>01</span> Demanda potencial</a></li>
+                <li><a href="#etapa-2"><span>02</span> Otimização do plantio</a></li>
+              </ul>
+            </details>
+          </li>
         </ul>
       </nav>
     </div>
@@ -29,118 +45,180 @@
 
   <main id="conteudo">
     <section class="hero" id="inicio">
-      <div class="shell hero-inner">
-        <p class="eyebrow">Mobilidade à pé em Fortaleza</p>
+      <div class="shell hero__inner">
+        <p class="eyebrow">Mobilidade em Fortaleza</p>
         <h1>Cidade à Sombra</h1>
-        <p class="hero-copy">
+        <p class="hero__copy">
           O projeto investiga caminhos para apoiar deslocamentos a pé mais confortáveis em Fortaleza. Nesta primeira etapa, estimei a demanda potencial nos trechos usados para chegar ao transporte coletivo; a exposição solar será incorporada em uma etapa posterior.
         </p>
       </div>
     </section>
 
-    <section class="numbers" id="numeros" aria-labelledby="numeros-titulo">
+    <section class="content-section" id="numeros" aria-labelledby="numeros-titulo">
       <div class="shell">
-        <div class="section-head">
-          <div>
+        <header class="section-heading section-heading--split">
+          <div class="section-heading__body">
             <p class="eyebrow">Panorama do recorte</p>
             <h2 id="numeros-titulo">Análise em números</h2>
           </div>
-          <p class="section-intro">
+          <p class="section-heading__intro">
             Os valores abaixo resumem a rede, os dados populacionais e o resultado da execução atual do projeto em Fortaleza.
           </p>
-        </div>
-        <div class="numbers-grid">
-          <div class="stat"><strong>88.326</strong><span>nós na rede de pedestres</span></div>
-          <div class="stat"><strong>384.500</strong><span>arestas analisadas na rede</span></div>
-          <div class="stat"><strong>5.262</strong><span>paradas GTFS consideradas</span></div>
-          <div class="stat"><strong>26.835</strong><span>células GHSL com população positiva</span></div>
-          <div class="stat"><strong>44.834</strong><span>arestas que receberam demanda potencial</span></div>
-          <div class="stat"><strong>2,79 mi</strong><span>pessoas nas células positivas do recorte</span></div>
+        </header>
+        <div class="metric-grid metric-grid--large">
+          <div class="metric"><strong class="metric__value">88.326</strong><span class="metric__label">nós na rede de pedestres</span></div>
+          <div class="metric"><strong class="metric__value">384.500</strong><span class="metric__label">arestas analisadas na rede</span></div>
+          <div class="metric"><strong class="metric__value">5.262</strong><span class="metric__label">paradas GTFS consideradas</span></div>
+          <div class="metric"><strong class="metric__value">26.835</strong><span class="metric__label">células GHSL com população positiva</span></div>
+          <div class="metric"><strong class="metric__value">44.834</strong><span class="metric__label">arestas que receberam demanda potencial</span></div>
+          <div class="metric"><strong class="metric__value">2,79 mi</strong><span class="metric__label">pessoas nas células positivas do recorte</span></div>
         </div>
       </div>
     </section>
 
-    <section class="map-section" id="mapas" aria-labelledby="mapa-1-titulo">
+    <section class="content-section content-section--divided" id="mapas" aria-labelledby="mapa-1-titulo">
       <div class="shell">
-        <div class="map-lead">
-          <span class="map-index">MAPA 01</span>
-          <div class="map-title">
+        <header class="section-heading section-heading--indexed">
+          <span class="section-heading__index">ETAPA 01</span>
+          <div class="section-heading__body">
             <p class="eyebrow">Demanda potencial</p>
             <h2 id="mapa-1-titulo">População potencial nas rotas até as paradas</h2>
-            <p>
+            <p class="section-heading__intro">
               O primeiro mapa foi produzido para visualizar a demanda potencial associada ao uso de cada trecho. A população de cada célula GHSL é encaminhada pela rede de pedestres até uma parada e acumulada nas arestas utilizadas. Esta etapa ainda não contém dados de exposição solar.
             </p>
           </div>
-        </div>
+        </header>
 
-        <div class="map-embed">
-          <img
-            src="./assets/mapa_completo.png"
-            alt="Visão geral do mapa de população potencial acumulada nas arestas de Fortaleza."
-          >
-        </div>
+        <figure class="map">
+          <div class="map__viewport">
+            <iframe
+              src="./maps/mapa_topojson.html"
+              title="Mapa interativo da população potencial nas rotas até as paradas"
+              loading="lazy"
+              allowfullscreen
+            ></iframe>
+          </div>
+          <figcaption class="map__caption">
+            <a class="button button--primary" href="./maps/mapa_topojson.html" target="_blank" rel="noopener">Abrir em nova guia</a>
+          </figcaption>
+        </figure>
 
-        <div class="map-actions">
-          <a class="map-link" href="./maps/mapa_geral_interativo_ghsl_log10.html" target="_blank" rel="noopener">Abrir mapa interativo</a>
-        </div>
-
-        <div class="method-data" aria-labelledby="dados-metodo-titulo">
-          <div class="method-data-head">
-            <h3 id="dados-metodo-titulo">Números da metodologia</h3>
-            <p>
+        <div class="subsection subsection--accent" aria-labelledby="dados-metodo-titulo">
+          <header class="section-heading section-heading--split section-heading--compact">
+            <div class="section-heading__body">
+              <h3 id="dados-metodo-titulo">Números da metodologia</h3>
+            </div>
+            <p class="section-heading__intro">
               Estes indicadores ajudam a verificar a associação entre população, rede e transporte coletivo antes da atribuição da demanda potencial às arestas.
             </p>
+          </header>
+          <div class="metric-grid metric-grid--stackable">
+            <div class="metric"><strong class="metric__value">5.262</strong><span class="metric__label">paradas associadas a nós</span></div>
+            <div class="metric"><strong class="metric__value">0</strong><span class="metric__label">paradas descartadas pelos filtros</span></div>
+            <div class="metric"><strong class="metric__value">4.566</strong><span class="metric__label">nós únicos associados a paradas</span></div>
+            <div class="metric"><strong class="metric__value">26.835</strong><span class="metric__label">células associadas a nós da rede</span></div>
+            <div class="metric"><strong class="metric__value">0</strong><span class="metric__label">células positivas sem nó válido</span></div>
+            <div class="metric"><strong class="metric__value">28.776</strong><span class="metric__label">células NoData no raster recortado</span></div>
+            <div class="metric"><strong class="metric__value">4.617</strong><span class="metric__label">células com população igual a zero</span></div>
+            <div class="metric"><strong class="metric__value">24.864</strong><span class="metric__label">rotas válidas com uma ou mais arestas</span></div>
+            <div class="metric"><strong class="metric__value">1.971</strong><span class="metric__label">origens já localizadas em nó de parada</span></div>
+            <div class="metric"><strong class="metric__value">0</strong><span class="metric__label">células sem caminho até uma parada</span></div>
           </div>
-          <div class="method-data-grid">
-            <div class="method-stat"><strong>5.262</strong><span>paradas associadas a nós</span></div>
-            <div class="method-stat"><strong>0</strong><span>paradas descartadas pelos filtros</span></div>
-            <div class="method-stat"><strong>4.566</strong><span>nós únicos associados a paradas</span></div>
-            <div class="method-stat"><strong>26.835</strong><span>células associadas a nós da rede</span></div>
-            <div class="method-stat"><strong>0</strong><span>células positivas sem nó válido</span></div>
-            <div class="method-stat"><strong>28.776</strong><span>células NoData no raster recortado</span></div>
-            <div class="method-stat"><strong>4.617</strong><span>células com população igual a zero</span></div>
-            <div class="method-stat"><strong>24.864</strong><span>rotas válidas com uma ou mais arestas</span></div>
-            <div class="method-stat"><strong>1.971</strong><span>origens já localizadas em nó de parada</span></div>
-            <div class="method-stat"><strong>0</strong><span>células sem caminho até uma parada</span></div>
-          </div>
+        </div>
+
+        <div class="subsection subsection--spacious" id="metodo" aria-labelledby="metodo-titulo">
+          <header class="section-heading section-heading--indexed section-heading--tight">
+            <span class="section-heading__index">MÉTODO DA ETAPA</span>
+            <div class="section-heading__body">
+              <h3 id="metodo-titulo">Como o resultado foi construído</h3>
+              <p class="section-heading__intro">
+                O indicador representa uma demanda potencial associada ao uso dos trechos, não a quantidade de moradores fisicamente localizada em cada rua.
+              </p>
+            </div>
+          </header>
+          <ol class="method-list">
+            <li>
+              <h3>População e origem</h3>
+              <p>Cada célula populada do GHSL é representada por seu centroide e associada ao nó mais próximo da rede de pedestres.</p>
+            </li>
+            <li>
+              <h3>Rota até o transporte</h3>
+              <p>A rota de menor custo pela rede conecta o nó de origem a um nó associado a uma parada GTFS.</p>
+            </li>
+            <li>
+              <h3>Atribuição aos trechos</h3>
+              <p>A população da célula é atribuída integralmente a cada aresta distinta da rota e somada quando diferentes células utilizam o mesmo trecho.</p>
+            </li>
+          </ol>
         </div>
       </div>
     </section>
 
-    <section class="method-section" id="metodo" aria-labelledby="metodo-titulo">
-      <div class="shell">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Leitura resumida</p>
-            <h2 id="metodo-titulo">Como o resultado foi construído</h2>
+    <section class="content-section content-section--divided" id="etapa-2" aria-labelledby="modelo-titulo">
+      <article class="shell">
+        <header class="section-heading section-heading--indexed">
+          <span class="section-heading__index">ETAPA 02</span>
+          <div class="section-heading__body">
+            <p class="eyebrow">Modelo de otimização</p>
+            <h2 id="modelo-titulo">Onde plantar as árvores?</h2>
+            <p class="section-heading__intro">
+              Dada uma quantidade fixa \(N\) de árvores, o modelo determina em quais ruas plantá-las para reduzir ao máximo a exposição solar acumulada dos pedestres.
+            </p>
           </div>
-          <p class="section-intro">
-            O indicador representa uma demanda potencial associada ao uso dos trechos, não a quantidade de moradores fisicamente localizada em cada rua.
-          </p>
+        </header>
+
+        <div class="model-parts">
+          <section class="model-part" aria-labelledby="parte-1">
+            <p class="part-label">PARTE I</p>
+            <h3 id="parte-1">Exposição atual</h3>
+            <p>Em cada rua \(i\), combinam-se fluxo \(F_i\), proporção exposta ao sol \(S_i\) e comprimento \(L_i\).</p>
+            <div class="equation">\[ J_{\mathrm{atual}}=\sum_i F_iS_iL_i \tag{1} \]</div>
+          </section>
+
+          <section class="model-part" aria-labelledby="parte-2">
+            <p class="part-label">PARTE II</p>
+            <h3 id="parte-2">Efeito do plantio</h3>
+            <p>Cada árvore reduz \(l_a\) unidades de exposição. Com \(n_i\) árvores na rua \(i\):</p>
+            <div class="equation">\[ J_{\mathrm{novo}}=J_{\mathrm{atual}}-l_a\sum_i F_i n_i \tag{2} \]</div>
+          </section>
+
+          <section class="model-part" aria-labelledby="parte-3">
+            <p class="part-label">PARTE III</p>
+            <h3 id="parte-3">Distribuição ótima</h3>
+            <p>Minimizar a exposição equivale a maximizar o benefício ponderado pelo fluxo:</p>
+            <div class="equation equation-box">\[ \boxed{\max_{n_i}\ \sum_i F_i n_i} \tag{3} \]</div>
+            <div class="constraints">
+              <p>sujeito a</p>
+              <div class="equation">\[ \begin{aligned} \sum_i n_i &= N, \\ 0\le n_i &\le \bar n_i, \quad n_i\in\mathbb{Z}_{\ge 0}. \end{aligned} \tag{4} \]</div>
+            </div>
+          </section>
         </div>
-        <ol class="method-list">
-          <li>
-            <h3>População e origem</h3>
-            <p>Cada célula populada do GHSL é representada por seu centroide e associada ao nó mais próximo da rede de pedestres.</p>
-          </li>
-          <li>
-            <h3>Rota até o transporte</h3>
-            <p>A rota de menor custo pela rede conecta o nó de origem a um nó associado a uma parada GTFS.</p>
-          </li>
-          <li>
-            <h3>Atribuição aos trechos</h3>
-            <p>A população da célula é atribuída integralmente a cada aresta distinta da rota e somada quando diferentes células utilizam o mesmo trecho.</p>
-          </li>
-        </ol>
-      </div>
+
+        <aside class="model-note subsection subsection--accent" aria-labelledby="intuicao-titulo">
+          <p class="part-label">NOTA DE LEITURA</p>
+          <h3 id="intuicao-titulo">Por que o modelo faz sentido?</h3>
+          <p>
+            Uma árvore que reduz 5 metros de exposição em uma rua usada por 1.000 pessoas produz maior benefício coletivo estimado que a mesma árvore em uma rua usada por 10 pessoas. Assim, o modelo prioriza trechos de maior fluxo, respeitando a quantidade disponível e o limite de plantio de cada rua.
+          </p>
+        </aside>
+      </article>
     </section>
   </main>
 
-  <footer>
-    <div class="shell footer-row">
+  <footer class="site-footer">
+    <div class="shell site-footer__row">
       <span>Cidade à Sombra · Fortaleza, Ceará</span>
       <span>Resultados da execução atual do projeto.</span>
     </div>
   </footer>
+  <script>
+    const stageMenu = document.querySelector(".nav-dropdown details");
+    stageMenu.querySelectorAll("a").forEach(link => {
+      link.addEventListener("click", () => stageMenu.removeAttribute("open"));
+    });
+    document.addEventListener("click", event => {
+      if (stageMenu.open && !stageMenu.contains(event.target)) stageMenu.removeAttribute("open");
+    });
+  </script>
 </body>
 </html>
