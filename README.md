@@ -1,40 +1,26 @@
 # Cidade à Sombra
 
-O **Cidade à Sombra** é um projeto sobre mobilidade a pé, acesso a pontos de interesse e conforto urbano em Fortaleza.
+Projeto sobre mobilidade a pé e conforto urbano em Fortaleza. Nesta etapa, o site apresenta a demanda potencial nas rotas de pedestres até paradas de transporte coletivo.
 
-Nesta etapa, o projeto oferece suporte apenas a paradas de transporte coletivo. Outras categorias de pontos de interesse serão implementadas futuramente.
+## Acesse o projeto
 
-O [site](https://anaclaramtn.github.io/urban-shade-routing/) reúne os resultados produzidos até o momento e apresenta um primeiro mapa de demanda potencial associada ao uso dos trechos da rede de pedestres. A análise de exposição solar será incorporada posteriormente.
+Veja o site publicado em [Cidade à Sombra](https://anaclaramtn.github.io/urban-shade-routing/).
 
-## Conteúdo atual
+Para visualizar localmente, abra o arquivo `index.html` no navegador.
 
-- panorama numérico do recorte analisado;
-- mapa geral da demanda potencial nas rotas até as paradas;
-- visualização interativa com camadas independentes;
-- indicadores resumidos de validação do resultado.
+## Conteúdo
+
+- resumo da área analisada;
+- mapa da demanda potencial;
+- camadas interativas;
+- indicadores de validação.
 
 ## Estrutura
 
-```text
-.
-├── assets/
-│   └── mapa_completo.png
-├── maps/
-│   └── mapa_geral_interativo_ghsl_log10.html
-├── index.html
-└── styles.css
-```
+- `index.html`: página principal;
+- `styles.css`: estilos do site;
+- `assets/`: imagens;
+- `maps/`: mapas e dados geográficos;
+- `scripts/`: scripts auxiliares.
 
-## Visualização
-
-Abra `index.html` em um navegador ou publique os arquivos em um servidor estático.
-
-O mapa completo também pode ser aberto diretamente em:
-
-```text
-maps/mapa_geral_interativo_ghsl_log10.html
-```
-
-## Estado do projeto
-
-Esta é uma versão em desenvolvimento. Novos mapas e conteúdos serão adicionados ao site conforme o projeto avançar.
+> O projeto está em desenvolvimento. A análise de exposição solar e novos pontos de interesse serão adicionados futuramente.
