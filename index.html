@@ -161,46 +161,8 @@
           <div class="section-heading__body">
             <p class="eyebrow">Modelo de otimização</p>
             <h2 id="modelo-titulo">Onde plantar as árvores?</h2>
-            <p class="section-heading__intro">
-              Dada uma quantidade fixa \(N\) de árvores, o modelo determina em quais ruas plantá-las para reduzir ao máximo a exposição solar acumulada dos pedestres.
-            </p>
           </div>
         </header>
-
-        <div class="model-parts">
-          <section class="model-part" aria-labelledby="parte-1">
-            <p class="part-label">PARTE I</p>
-            <h3 id="parte-1">Exposição atual</h3>
-            <p>Em cada rua \(i\), combinam-se fluxo \(F_i\), proporção exposta ao sol \(S_i\) e comprimento \(L_i\).</p>
-            <div class="equation">\[ J_{\mathrm{atual}}=\sum_i F_iS_iL_i \tag{1} \]</div>
-          </section>
-
-          <section class="model-part" aria-labelledby="parte-2">
-            <p class="part-label">PARTE II</p>
-            <h3 id="parte-2">Efeito do plantio</h3>
-            <p>Cada árvore reduz \(l_a\) unidades de exposição. Com \(n_i\) árvores na rua \(i\):</p>
-            <div class="equation">\[ J_{\mathrm{novo}}=J_{\mathrm{atual}}-l_a\sum_i F_i n_i \tag{2} \]</div>
-          </section>
-
-          <section class="model-part" aria-labelledby="parte-3">
-            <p class="part-label">PARTE III</p>
-            <h3 id="parte-3">Distribuição ótima</h3>
-            <p>Minimizar a exposição equivale a maximizar o benefício ponderado pelo fluxo:</p>
-            <div class="equation equation-box">\[ \boxed{\max_{n_i}\ \sum_i F_i n_i} \tag{3} \]</div>
-            <div class="constraints">
-              <p>sujeito a</p>
-              <div class="equation">\[ \begin{aligned} \sum_i n_i &= N, \\ 0\le n_i &\le \bar n_i, \quad n_i\in\mathbb{Z}_{\ge 0}. \end{aligned} \tag{4} \]</div>
-            </div>
-          </section>
-        </div>
-
-        <aside class="model-note subsection subsection--accent" aria-labelledby="intuicao-titulo">
-          <p class="part-label">NOTA DE LEITURA</p>
-          <h3 id="intuicao-titulo">Por que o modelo faz sentido?</h3>
-          <p>
-            Uma árvore que reduz 5 metros de exposição em uma rua usada por 1.000 pessoas produz maior benefício coletivo estimado que a mesma árvore em uma rua usada por 10 pessoas. Assim, o modelo prioriza trechos de maior fluxo, respeitando a quantidade disponível e o limite de plantio de cada rua.
-          </p>
-        </aside>
       </article>
     </section>
   </main>
