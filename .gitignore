@@ -7,3 +7,6 @@
 # Cache local do Python
 __pycache__/
 *.py[cod]
+
+# Exportações brutas do Colab (geradas pelo notebook de diagnóstico)
+notebooks/*.geojson

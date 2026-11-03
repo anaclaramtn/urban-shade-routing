@@ -36,6 +36,11 @@
     .legend-range { display: flex; justify-content: space-between; }
     .leaflet-tooltip table { border-collapse: collapse; }
     .leaflet-tooltip th { padding-right: 8px; text-align: left; }
+    .leaflet-tooltip .sol { margin-top: 5px; }
+    .leaflet-tooltip .sol th, .leaflet-tooltip .sol td { padding: 1px 4px; text-align: right; font-weight: 400; }
+    .leaflet-tooltip .sol th:first-child { padding-left: 0; text-align: left; }
+    .leaflet-tooltip .sol thead th { font-weight: 700; }
+    .leaflet-tooltip .nota { color: #666; font-size: 11px; }
     @media (max-width: 650px) {
       .leaflet-control-layers-expanded { max-width: 245px; font-size: 12px; }
       .legend { width: 185px; }
@@ -76,12 +81,63 @@
     }
 
     function tooltip(properties, fields) {
-      const rows = fields.map(([key, label, digits]) => {
-        let value = properties[key];
+      // Campos marcados com "log" ganham uma linha log10 logo abaixo do valor.
+      const rows = fields.map(([key, label, digits, log]) => {
+        const raw = properties[key];
+        let value = raw;
         if (typeof value === "number" && digits !== undefined) value = value.toFixed(digits);
-        return `<tr><th>${label}</th><td>${value ?? "—"}</td></tr>`;
+        let row = `<tr><th>${label}</th><td>${value ?? "—"}</td></tr>`;
+        if (log) row += `<tr><th>log10</th><td>${typeof raw === "number" && raw > 0 ? Math.log10(raw).toFixed(3) : "—"}</td></tr>`;
+        return row;
       }).join("");
       return `<table>${rows}</table>`;
+    }
+
+    // ---------------------------------------------------------------------
+    // Tooltip das arestas: fluxo (desta camada) + comprimento e sol (do
+    // TopoJSON do plantio, carregado na primeira passada do mouse).
+    // ---------------------------------------------------------------------
+    const fmtBR = (v, d = 0) => v.toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
+    let solPorAresta = null, solCarregando = null, horasSol = [], arestaSobMouse = null;
+
+    function carregarSol() {
+      if (solCarregando) return solCarregando;
+      solCarregando = fetch("./topojson/arestas_plantio.topojson")
+        .then(r => { if (!r.ok) throw new Error(`${r.status} ${r.statusText}`); return r.json(); })
+        .then(topology => {
+          const geometrias = topology.objects[Object.keys(topology.objects)[0]].geometries;
+          solPorAresta = new Map(geometrias.map(g => [g.properties.id, g.properties]));
+          horasSol = [...new Set(Object.keys(geometrias[0].properties)
+            .filter(k => /^s\d+$/.test(k)).map(k => +k.match(/\d+/)[0]))].sort((a, b) => a - b);
+          if (arestaSobMouse && arestaSobMouse.getTooltip()) arestaSobMouse.getTooltip().update();
+        })
+        .catch(error => { solPorAresta = false; console.error(error); });
+      return solCarregando;
+    }
+
+    function tooltipAresta(p) {
+      const linhas = [
+        ["Aresta", p.edge_id],
+        ["Fluxo", fmtBR(p.edge_population, 2)],
+        ["log10", fmtBR(p.edge_population_log10, 3)]
+      ];
+      let sol;
+      if (solPorAresta === null) sol = `<div class="nota">Carregando dados de sol…</div>`;
+      else if (solPorAresta === false) sol = `<div class="nota">Dados de sol indisponíveis.</div>`;
+      else {
+        const s = solPorAresta.get(p.edge_id);
+        if (!s) sol = `<div class="nota">Sem dados de sol para esta aresta.</div>`;
+        else {
+          linhas.push(["Comprimento", `${fmtBR(s.L, 1)} m`]);
+          const cab = horasSol.map(h => `<th>${h}h</th>`).join("");
+          const pct = horasSol.map(h => `<td>${fmtBR(s[`s${h}`])}%</td>`).join("");
+          const met = horasSol.map(h => `<td>${fmtBR(s[`s${h}`] / 100 * s.L, 1)}</td>`).join("");
+          sol = `<table class="sol"><thead><tr><th>Sol</th>${cab}</tr></thead>`
+            + `<tr><th>Fração ao sol</th>${pct}</tr><tr><th>Metros ao sol</th>${met}</tr></table>`
+            + `<div class="nota">Sombra de prédios + árvores existentes.</div>`;
+        }
+      }
+      return `<table>${linhas.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join("")}</table>${sol}`;
     }
 
     const layers = [
@@ -92,27 +148,29 @@
       {
         id: "ghslRelevant", label: "GHSL população relevante", file: "ghsl_populacao_relevante.topojson", pane: "polygons",
         style: () => ({ color: "#2166ac", fillColor: "#2182c9", fillOpacity: .14, weight: .35 }),
-        fields: [["population_raw", "População", 2], ["raster_row", "Linha"], ["raster_col", "Coluna"]]
+        fields: [["population_raw", "População", 2, "log"], ["raster_row", "Linha"], ["raster_col", "Coluna"]]
       },
       {
         id: "ghslZero", label: "GHSL zero", file: "ghsl_zero.topojson", pane: "polygons",
         style: () => ({ color: "#b2182b", fillColor: "#d7191c", fillOpacity: .16, weight: .25 }),
-        fields: [["population_raw", "População", 2], ["raster_row", "Linha"], ["raster_col", "Coluna"]]
+        fields: [["population_raw", "População", 2, "log"], ["raster_row", "Linha"], ["raster_col", "Coluna"]]
       },
       {
-        id: "flow", label: "Arestas — população log10", file: "arestas_fluxo_potencial_log10.topojson", pane: "flow", default: true,
+        id: "flow", label: "Arestas — fluxo log10", file: "arestas_fluxo_potencial_log10.topojson", pane: "flow", default: true,
         style: f => ({ color: interpolateColor(f.properties.edge_population_log10, -2.5081, 3.6587), opacity: .88, weight: 1.15 }),
-        fields: [["edge_id", "Aresta"], ["edge_population", "População potencial", 2], ["edge_population_log10", "log10", 3]]
+        renderer: L.canvas({ pane: "flow", tolerance: 6 }),
+        tooltipFn: tooltipAresta,
+        highlight: { weight: 4, opacity: 1 }
       },
       {
         id: "centroidOrigin", label: "Associação centroide → origem", file: "associacao_centroide_origem.topojson", pane: "links",
         style: () => ({ color: "#000", dashArray: "6, 6", opacity: .82, weight: 1.25 }),
-        fields: [["cell_id", "Célula"], ["population", "População", 2], ["distance_centroid_to_node_m", "Distância (m)", 1]]
+        fields: [["cell_id", "Célula"], ["population", "População", 2, "log"], ["distance_centroid_to_node_m", "Distância (m)", 1]]
       },
       {
         id: "centroids", label: "Centros geométricos das células GHSL", file: "centros_celulas_ghsl.topojson", pane: "points",
         point: (_, latlng) => L.circleMarker(latlng, { pane: "points", radius: 2.5, color: "#111", weight: .7, fillColor: "#fff", fillOpacity: .95 }),
-        fields: [["cell_id", "Célula"], ["population", "População", 2], ["distance_centroid_to_node_m", "Distância (m)", 1]]
+        fields: [["cell_id", "Célula"], ["population", "População", 2, "log"], ["distance_centroid_to_node_m", "Distância (m)", 1]]
       },
       {
         id: "origins", label: "Pontos de origem — população log10", file: "pontos_origem_log10.topojson", pane: "points", default: true,
@@ -174,7 +232,18 @@
           pane: config.pane,
           style: config.style,
           pointToLayer: config.point,
-          onEachFeature: config.fields ? (feature, layer) => layer.bindTooltip(tooltip(feature.properties, config.fields), { sticky: true }) : undefined
+          renderer: config.renderer,
+          onEachFeature: (feature, layer) => {
+            if (config.tooltipFn) {
+              layer.bindTooltip(() => config.tooltipFn(feature.properties), { sticky: true });
+            } else if (config.fields) {
+              layer.bindTooltip(tooltip(feature.properties, config.fields), { sticky: true });
+            }
+            if (config.highlight) {
+              layer.on("mouseover", () => { arestaSobMouse = layer; carregarSol(); layer.setStyle(config.highlight); });
+              layer.on("mouseout", () => { arestaSobMouse = null; config.rendered.resetStyle(layer); });
+            }
+          }
         });
         rendered.addTo(config.group);
         config.rendered = rendered;
@@ -217,7 +286,7 @@
       };
       legend.addTo(map);
     }
-    addLegend("bottomright", "Arestas — log10 da população potencial", "−2,51", "3,66");
+    addLegend("bottomright", "Arestas — log10 do fluxo", "−2,51", "3,66");
     addLegend("bottomright", "Origens — log10 da população GHSL", "−3,65", "3,20");
   </script>
 </body>

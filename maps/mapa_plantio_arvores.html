@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Plantio de árvores — distribuição por fluxo</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    html, body, #map { width: 100%; height: 100%; margin: 0; }
+    body { font-family: Arial, sans-serif; }
+    #map { background: #fff; }
+    .map-title, .load-status, .panel {
+      border: 1px solid #aaa;
+      border-radius: 3px;
+      background: rgba(255,255,255,.95);
+      box-shadow: 0 1px 4px rgba(0,0,0,.16);
+    }
+    .map-title { padding: 7px 10px; font-size: 14px; font-weight: 700; }
+    .load-status { padding: 7px 10px; color: #444; font-size: 12px; }
+    .panel { width: 290px; padding: 8px 12px 10px; color: #222; font-size: 12px; }
+    .panel summary { cursor: pointer; font-size: 13px; font-weight: 700; }
+    .ctrl { margin-top: 9px; }
+    .ctrl label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; font-weight: 700; }
+    .ctrl input[type=range], .ctrl select { width: 100%; }
+    .num { width: 72px; text-align: right; }
+    .panel table { width: 100%; margin-top: 10px; border-collapse: collapse; }
+    .panel td { padding: 2px 0; }
+    .panel td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+    .panel tr.result td { padding-top: 5px; border-top: 1px solid #ddd; color: #1b6b3a; font-size: 14px; font-weight: 700; }
+    .warning { margin-top: 5px; color: #a04000; }
+    .legend-gradient { height: 9px; margin: 9px 0 2px; background: linear-gradient(90deg, #c7e9b4, #41ab5d, #00441b); }
+    .legend-range { display: flex; justify-content: space-between; }
+    .panel button { width: 100%; margin-top: 8px; padding: 4px; cursor: pointer; }
+    .leaflet-popup-content table { border-collapse: collapse; }
+    .leaflet-popup-content th { padding-right: 10px; text-align: left; font-weight: 400; color: #555; }
+    .leaflet-popup-content td { text-align: right; }
+    @media (max-width: 650px) { .panel { width: 220px; } }
+  </style>
+</head>
+<body>
+  <div id="map" aria-label="Mapa interativo da distribuição de árvores pelas arestas de maior fluxo"></div>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+  <script src="./plantio_algoritmo.js"></script>
+  <script>
+    const map = L.map("map", { preferCanvas: true });
+    map.fitBounds([[-3.89460306, -38.63790294], [-3.69202597, -38.40132769]]);
+    L.control.scale().addTo(map);
+    [["graph", 350], ["flow", 450], ["boundary", 550]].forEach(([name, zIndex]) => {
+      map.createPane(name);
+      map.getPane(name).style.zIndex = zIndex;
+    });
+    const renderer = L.canvas({ pane: "flow", padding: .5, tolerance: 4 });
+
+    async function lerTopojson(arquivo) {
+      const response = await fetch(`./topojson/${arquivo}`);
+      if (!response.ok) throw new Error(`${arquivo}: ${response.status} ${response.statusText}`);
+      const topology = await response.json();
+      return topojson.feature(topology, topology.objects[Object.keys(topology.objects)[0]]);
+    }
+
+    // Fundo: mesmas camadas TopoJSON do mapa da Etapa 1 (sem tiles externos).
+    lerTopojson("grafo_fundo.topojson").then(geojson => {
+      L.geoJSON(geojson, { pane: "graph", interactive: false, style: () => ({ color: "#bdbdbd", opacity: .6, weight: .45 }) }).addTo(map);
+    }).catch(console.error);
+    lerTopojson("limite_territorial.topojson").then(geojson => {
+      L.geoJSON(geojson, { pane: "boundary", interactive: false, style: () => ({ color: "#111", fillOpacity: 0, opacity: .85, weight: 1.4 }) }).addTo(map);
+    }).catch(console.error);
+    const fmt = (v, d = 0) => v.toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
+
+    const title = L.control({ position: "topleft" });
+    title.onAdd = () => {
+      const element = L.DomUtil.create("div", "map-title");
+      element.textContent = "Plantio de árvores por fluxo";
+      return element;
+    };
+    title.addTo(map);
+
+    const status = L.control({ position: "bottomleft" });
+    status.onAdd = () => {
+      status.element = L.DomUtil.create("div", "load-status");
+      status.element.textContent = "Carregando arestas…";
+      return status.element;
+    };
+    status.addTo(map);
+
+    const panel = L.control({ position: "topright" });
+    panel.onAdd = () => {
+      const element = L.DomUtil.create("div", "panel");
+      element.innerHTML = `
+        <details open>
+          <summary>Parâmetros e resultado</summary>
+          <div class="ctrl"><label>Horário <span>7h</span></label></div>
+          <div class="ctrl"><label>lₐ (m de sol por árvore) <span><input id="la_num" class="num" type="number" min="0.5" step="0.5"> m</span></label>
+            <input id="la" type="range" min="1" max="15" step="0.5" value="6"></div>
+          <div class="ctrl"><label>N (árvores) <input id="n_num" class="num" type="number" min="0" step="1"></label>
+            <input id="n" type="range" min="0" max="10000" step="1" value="1000"></div>
+          <table>
+            <tr><td>J_old = Σ F·S·L</td><td id="j_old">—</td></tr>
+            <tr><td>J_novo = J_old − lₐ·Σ F·n</td><td id="j_novo">—</td></tr>
+            <tr><td>Redução de J (pessoas·m)</td><td id="reducao_abs">—</td></tr>
+            <tr class="result"><td>Redução</td><td id="reducao">—</td></tr>
+            <tr><td>Árvores plantadas</td><td id="plantadas">—</td></tr>
+            <tr><td>Arestas com árvores</td><td id="arestas">—</td></tr>
+            <tr><td>Capacidade Σ⌊S·L/lₐ⌋</td><td id="capacidade">—</td></tr>
+          </table>
+          <div id="aviso" class="warning"></div>
+          <div class="legend-gradient"></div>
+          <div class="legend-range"><span>nᵢ = 1</span><span id="nmax">—</span></div>
+          <button id="enquadrar" type="button">Enquadrar arestas com árvores</button>
+        </details>`;
+      L.DomEvent.disableClickPropagation(element);
+      L.DomEvent.disableScrollPropagation(element);
+      return element;
+    };
+    panel.addTo(map);
+
+    const el = id => document.getElementById(id);
+    const base = L.layerGroup().addTo(map);
+    const destaque = L.layerGroup().addTo(map);
+    let D = null, ORDEM = null, estado = null, agendado = false;
+
+    // Horário congelado em 7h. Os outros horários (9h a 15h) continuam no TopoJSON;
+    // para usá-los, troque esta constante.
+    const HORA = 7;
+    function chaveSol() { return `s${HORA}`; }
+
+    function corPorN(t) {
+      const a = [199, 233, 180], b = [65, 171, 93], c = [0, 68, 27];
+      const [p, q, u] = t < .5 ? [a, b, t / .5] : [b, c, (t - .5) / .5];
+      return `rgb(${p.map((v, k) => Math.round(v + (q[k] - v) * u)).join(",")})`;
+    }
+
+    function abrirPopup(i, latlng) {
+      const S = D.S[chaveSol()][i] / 100, la = +el("la").value;
+      const sol = S * D.L[i], ni = estado ? estado.n[i] : 0;
+      const linhas = [
+        ["Fluxo F", fmt(D.F[i], 2)],
+        ["log10", fmt(Math.log10(D.F[i]), 3)],
+        ["Comprimento L", `${fmt(D.L[i], 1)} m`],
+        [`Fração ao sol S (${HORA}h)`, `${fmt(S * 100)}%`],
+        ["Sol S·L", `${fmt(sol, 1)} m`],
+        ["Capacidade ⌊S·L/lₐ⌋", fmt(Math.floor(sol / la + 1e-9))],
+        ["<b>Árvores nᵢ</b>", `<b>${ni}</b>`],
+        ["Sol restante", `${fmt(Math.max(sol - ni * la, 0), 1)} m`]
+      ];
+      L.popup().setLatLng(latlng).setContent(
+        `<strong>Aresta ${D.id[i]}</strong><table>${linhas.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join("")}</table>`
+      ).openOn(map);
+    }
+
+    function atualizar() {
+      if (!D || agendado) return;
+      agendado = true;
+      setTimeout(() => {  // agrupa mudanças rápidas do controle deslizante
+        agendado = false;
+        const la = +el("la").value, N = +el("n").value;
+        el("la_num").value = la; el("n_num").value = N;
+        const r = estado = distribuir(D.F, D.L, D.S[chaveSol()], ORDEM, la, N);
+        el("j_old").textContent = fmt(r.jOld);
+        el("j_novo").textContent = fmt(r.jNovo);
+        el("reducao_abs").textContent = fmt(r.jOld - r.jNovo);
+        el("reducao").textContent = r.jOld > 0 ? `${fmt(100 * (r.jOld - r.jNovo) / r.jOld, 4)}%` : "—";
+        el("plantadas").textContent = `${fmt(r.plantadas)} / ${fmt(N)}`;
+        el("arestas").textContent = fmt(r.arestas);
+        el("capacidade").textContent = fmt(r.capTotal);
+        el("nmax").textContent = r.nMax ? `nᵢ = ${r.nMax}` : "—";
+        el("aviso").textContent = r.plantadas < N
+          ? `A rede comporta só ${fmt(r.capTotal)} árvores com lₐ = ${fmt(la, 1)} m; ${fmt(N - r.plantadas)} ficaram sem lugar.`
+          : "";
+
+        destaque.clearLayers();
+        const raiz = Math.sqrt(Math.max(r.nMax, 1));
+        for (const i of ORDEM) {
+          const k = r.n[i];
+          if (!k || !D.geom[i]) continue;
+          const t = r.nMax > 1 ? (Math.sqrt(k) - 1) / (raiz - 1) : 1;
+          L.polyline(D.geom[i], { renderer, color: corPorN(t), weight: 2.5 + 5.5 * t, opacity: .95 })
+            .on("click", e => abrirPopup(i, e.latlng)).addTo(destaque);
+        }
+      }, 30);
+    }
+
+    async function carregar() {
+      const features = (await lerTopojson("arestas_plantio.topojson")).features;
+
+      const chaves = Object.keys(features[0].properties).filter(k => /^s\d+$/.test(k));
+      D = { F: [], L: [], id: [], geom: [], S: Object.fromEntries(chaves.map(k => [k, []])) };
+      for (const f of features) {
+        const p = f.properties;
+        D.F.push(p.F); D.L.push(p.L); D.id.push(p.id);
+        for (const k of chaves) D.S[k].push(p[k]);
+        const coords = f.geometry && f.geometry.coordinates;
+        D.geom.push(coords && coords.length > 1 ? coords.map(([x, y]) => [y, x]) : null);
+      }
+      ORDEM = prepararOrdem(D.F);
+
+
+      D.geom.forEach((g, i) => {
+        if (!g) return;
+        L.polyline(g, { renderer, color: "#7d8590", weight: 1, opacity: .6 })
+          .on("click", e => abrirPopup(i, e.latlng)).addTo(base);
+      });
+      status.element.textContent = `${fmt(D.F.length)} arestas com fluxo > 0`;
+      atualizar();
+    }
+
+    for (const id of ["la", "n"]) el(id).addEventListener("input", atualizar);
+    // Caixas numéricas: as setinhas e a digitação atualizam o mapa na hora.
+    // O controle deslizante de N usa passo 1 para não arredondar o valor digitado.
+    el("la_num").addEventListener("input", e => {
+      const v = parseFloat(e.target.value);
+      if (!(v > 0)) return;
+      el("la").min = Math.min(1, v); el("la").value = v; atualizar();
+    });
+    el("n_num").addEventListener("input", e => {
+      const v = parseInt(e.target.value, 10);
+      if (!(v >= 0)) return;
+      el("n").max = Math.max(10000, v); el("n").value = v; atualizar();
+    });
+    el("enquadrar").addEventListener("click", () => {
+      if (!estado) return;
+      const pts = [];
+      estado.n.forEach((k, i) => { if (k && D.geom[i]) pts.push(...D.geom[i]); });
+      if (pts.length) map.fitBounds(L.latLngBounds(pts), { padding: [30, 30] });
+    });
+
+    carregar().catch(error => {
+      const download = location.protocol === "file:" || error instanceof TypeError && /fetch/i.test(error.message);
+      status.element.textContent = download
+        ? "Não foi possível baixar as arestas: abra pelo site publicado ou por um servidor local."
+        : `Erro ao processar as arestas: ${error.message}`;
+      console.error(error);
+    });
+  </script>
+</body>
+</html>

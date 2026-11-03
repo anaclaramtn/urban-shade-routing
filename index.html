@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Cidade à Sombra: acompanhamento do projeto e resultados da estimativa de demanda potencial nas rotas de caminhada em Fortaleza.">
+  <meta name="description" content="Cidade à Sombra: acompanhamento do projeto e resultados da estimativa do fluxo potencial nas rotas de caminhada em Fortaleza.">
   <meta name="theme-color" content="#0b352b">
   <title>Cidade à Sombra</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,7 +33,7 @@
             <details>
               <summary>Etapas</summary>
               <ul class="nav-submenu">
-                <li><a href="#mapas"><span>01</span> Demanda potencial</a></li>
+                <li><a href="#mapas"><span>01</span> Fluxo potencial</a></li>
                 <li><a href="#etapa-2"><span>02</span> Otimização do plantio</a></li>
               </ul>
             </details>
@@ -49,7 +49,7 @@
         <p class="eyebrow">Mobilidade em Fortaleza</p>
         <h1>Cidade à Sombra</h1>
         <p class="hero__copy">
-          O projeto investiga caminhos para apoiar deslocamentos a pé mais confortáveis em Fortaleza. Nesta primeira etapa, estimei a demanda potencial nos trechos usados para chegar ao transporte coletivo; a exposição solar será incorporada em uma etapa posterior.
+          O projeto investiga caminhos para apoiar deslocamentos a pé mais confortáveis em Fortaleza. Nesta primeira etapa, estimei o fluxo potencial nos trechos usados para chegar ao transporte coletivo; a exposição solar será incorporada em uma etapa posterior.
         </p>
       </div>
     </section>
@@ -70,7 +70,7 @@
           <div class="metric"><strong class="metric__value">384.500</strong><span class="metric__label">arestas analisadas na rede</span></div>
           <div class="metric"><strong class="metric__value">5.262</strong><span class="metric__label">paradas GTFS consideradas</span></div>
           <div class="metric"><strong class="metric__value">26.835</strong><span class="metric__label">células GHSL com população positiva</span></div>
-          <div class="metric"><strong class="metric__value">44.834</strong><span class="metric__label">arestas que receberam demanda potencial</span></div>
+          <div class="metric"><strong class="metric__value">44.834</strong><span class="metric__label">arestas que receberam fluxo potencial</span></div>
           <div class="metric"><strong class="metric__value">2,79 mi</strong><span class="metric__label">pessoas nas células positivas do recorte</span></div>
         </div>
       </div>
@@ -81,10 +81,10 @@
         <header class="section-heading section-heading--indexed">
           <span class="section-heading__index">ETAPA 01</span>
           <div class="section-heading__body">
-            <p class="eyebrow">Demanda potencial</p>
-            <h2 id="mapa-1-titulo">População potencial nas rotas até as paradas</h2>
+            <p class="eyebrow">Fluxo potencial</p>
+            <h2 id="mapa-1-titulo">Fluxo potencial nas rotas até as paradas</h2>
             <p class="section-heading__intro">
-              O primeiro mapa foi produzido para visualizar a demanda potencial associada ao uso de cada trecho. A população de cada célula GHSL é encaminhada pela rede de pedestres até uma parada e acumulada nas arestas utilizadas. Esta etapa ainda não contém dados de exposição solar.
+              O primeiro mapa foi produzido para visualizar o fluxo potencial em cada trecho. A população de cada célula GHSL é encaminhada pela rede de pedestres até uma parada e somada nas arestas utilizadas, formando o fluxo de cada aresta. Esta etapa ainda não contém dados de exposição solar.
             </p>
           </div>
         </header>
@@ -93,7 +93,7 @@
           <div class="map__viewport">
             <iframe
               src="./maps/mapa_topojson.html"
-              title="Mapa interativo da população potencial nas rotas até as paradas"
+              title="Mapa interativo do fluxo potencial nas rotas até as paradas"
               loading="lazy"
               allowfullscreen
             ></iframe>
@@ -109,7 +109,7 @@
               <h3 id="dados-metodo-titulo">Números da metodologia</h3>
             </div>
             <p class="section-heading__intro">
-              Estes indicadores ajudam a verificar a associação entre população, rede e transporte coletivo antes da atribuição da demanda potencial às arestas.
+              Estes indicadores ajudam a verificar a associação entre população, rede e transporte coletivo antes do cálculo do fluxo nas arestas.
             </p>
           </header>
           <div class="metric-grid metric-grid--stackable">
@@ -132,7 +132,7 @@
             <div class="section-heading__body">
               <h3 id="metodo-titulo">Como o resultado foi construído</h3>
               <p class="section-heading__intro">
-                O indicador representa uma demanda potencial associada ao uso dos trechos, não a quantidade de moradores fisicamente localizada em cada rua.
+                O indicador representa um fluxo potencial associado ao uso dos trechos, não a quantidade de moradores fisicamente localizada em cada rua.
               </p>
             </div>
           </header>
@@ -161,8 +161,66 @@
           <div class="section-heading__body">
             <p class="eyebrow">Modelo de otimização</p>
             <h2 id="modelo-titulo">Onde plantar as árvores?</h2>
+            <p class="section-heading__intro">
+              Com \(N\) árvores, cada uma cobrindo \(l_a\) metros de sol, o mapa distribui o plantio pelas arestas de maior fluxo até zerar o sol de cada uma e mostra quanto a exposição \(J=\sum_i F_iS_iL_i\) diminui.
+            </p>
           </div>
         </header>
+
+        <figure class="map">
+          <div class="map__viewport">
+            <iframe
+              src="./maps/mapa_plantio_arvores.html"
+              title="Mapa interativo da distribuição de árvores pelas arestas de maior fluxo"
+              loading="lazy"
+              allowfullscreen
+            ></iframe>
+          </div>
+          <figcaption class="map__caption">
+            <a class="button button--primary" href="./maps/mapa_plantio_arvores.html" target="_blank" rel="noopener">Abrir em nova guia</a>
+          </figcaption>
+        </figure>
+
+        <div class="subsection subsection--spacious" id="metodo-plantio" aria-labelledby="metodo-plantio-titulo">
+          <header class="section-heading section-heading--indexed section-heading--tight">
+            <span class="section-heading__index">MÉTODO DA ETAPA</span>
+            <div class="section-heading__body">
+              <h3 id="metodo-plantio-titulo">Como o resultado foi construído</h3>
+              <p class="section-heading__intro">
+                O recorte abaixo mostra um trecho da cidade para acompanhar a decisão rua a rua: o fluxo de cada aresta, o sol disponível e quantas árvores ela recebe.
+              </p>
+            </div>
+          </header>
+
+          <figure class="map">
+            <div class="map__viewport">
+              <iframe
+                src="./maps/mapa_plantio_detalhe.html"
+                title="Recorte interativo mostrando onde as árvores são plantadas de acordo com o fluxo"
+                loading="lazy"
+                allowfullscreen
+              ></iframe>
+            </div>
+            <figcaption class="map__caption">
+              <a class="button button--primary" href="./maps/mapa_plantio_detalhe.html" target="_blank" rel="noopener">Abrir em nova guia</a>
+            </figcaption>
+          </figure>
+
+          <ol class="method-list">
+            <li>
+              <h3>Prioridade por fluxo</h3>
+              <p>As arestas são ordenadas pelo fluxo \(F_i\), a soma da população das células GHSL cujas rotas até o transporte coletivo passam por elas.</p>
+            </li>
+            <li>
+              <h3>Sol disponível</h3>
+              <p>Cada aresta comporta até \(\lfloor S_iL_i/l_a \rfloor\) árvores, isto é, quantas árvores cabem nos metros que ainda estão ao sol às 7h.</p>
+            </li>
+            <li>
+              <h3>Preenchimento</h3>
+              <p>As árvores vão primeiro para a aresta de maior fluxo até cobrir todo o sol dela, depois para a de maior fluxo seguinte, até acabarem as \(N\) árvores.</p>
+            </li>
+          </ol>
+        </div>
       </article>
     </section>
   </main>
