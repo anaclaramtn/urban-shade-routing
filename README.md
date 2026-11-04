@@ -1,26 +1,18 @@
 # Cidade à Sombra
 
-Projeto sobre mobilidade a pé e conforto urbano em Fortaleza. Nesta etapa, o site apresenta a demanda potencial nas rotas de pedestres até paradas de transporte coletivo.
+Projeto sobre mobilidade a pé e conforto urbano em Fortaleza. O site apresenta o fluxo potencial nas rotas de pedestres até as paradas de transporte coletivo (Etapa 1) e a otimização do plantio de árvores nas arestas de maior fluxo (Etapa 2).
 
 ## Acesse o projeto
 
 Veja o site publicado em [Cidade à Sombra](https://anaclaramtn.github.io/urban-shade-routing/).
 
-Para visualizar localmente, abra o arquivo `index.html` no navegador.
+## Rodar localmente
 
-## Conteúdo
+O site é feito em React (JavaScript) com Vite. É preciso ter o Node.js 20.19 ou mais recente.
 
-- resumo da área analisada;
-- mapa da demanda potencial;
-- camadas interativas;
-- indicadores de validação.
-
-## Estrutura
-
-- `index.html`: página principal;
-- `styles.css`: estilos do site;
-- `assets/`: imagens;
-- `maps/`: mapas e dados geográficos;
-- `scripts/`: scripts auxiliares.
-
-> O projeto está em desenvolvimento. A análise de exposição solar e novos pontos de interesse serão adicionados futuramente.
+```bash
+npm install      # uma vez
+npm run dev      # servidor local com recarregamento automático
+npm run build    # gera o site final em dist/
+npm run preview  # serve a pasta dist/ para conferir o build
+```
