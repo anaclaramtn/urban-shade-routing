@@ -15,7 +15,7 @@ export const PARTES = [
   {
     id: "parte-2",
     numero: "02",
-    status: "Concluída",
+    status: "Em andamento",
     titulo: "Onde plantar as árvores",
     resumo: "Distribui um número fixo de árvores pelos trechos de maior fluxo para reduzir a exposição ao sol.",
     feito: [
@@ -27,7 +27,7 @@ export const PARTES = [
   {
     id: "parte-3",
     numero: "03",
-    status: "Em andamento",
+    status: "Não iniciado",
     titulo: "Rotas pela sombra",
     resumo: "Incorpora a exposição solar ao cálculo de rotas",
     feito: [
