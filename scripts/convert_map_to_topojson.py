@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "maps" / "mapa_geral_interativo_ghsl_log10.html"
-OUTPUT = ROOT / "maps" / "topojson"
+OUTPUT = ROOT / "public" / "topojson"
 QUANTIZATION = 1_000_000
 
 LAYERS = {

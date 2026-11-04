@@ -2,8 +2,8 @@
 
 Entradas:
   notebooks/arestas_arvores.geojson                    geometria, L e sol (exportação do Colab)
-  maps/topojson/arestas_fluxo_potencial_log10.topojson fluxo F do mapa da Etapa 1
-Saída:    maps/topojson/arestas_plantio.topojson
+  public/topojson/arestas_fluxo_potencial_log10.topojson fluxo F do mapa da Etapa 1
+Saída:    public/topojson/arestas_plantio.topojson
 
 Uso:  python scripts/build_plantio_topojson.py
 Só usa a biblioteca padrão do Python.
@@ -25,8 +25,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ENTRADA = ROOT / "notebooks" / "arestas_arvores.geojson"
-FLUXO_ETAPA_1 = ROOT / "maps" / "topojson" / "arestas_fluxo_potencial_log10.topojson"
-SAIDA = ROOT / "maps" / "topojson" / "arestas_plantio.topojson"
+FLUXO_ETAPA_1 = ROOT / "public" / "topojson" / "arestas_fluxo_potencial_log10.topojson"
+SAIDA = ROOT / "public" / "topojson" / "arestas_plantio.topojson"
 OBJETO = "arestas_plantio"
 QUANTIZACAO = 1_000_000
 PADRAO_SOL = re.compile(r"^sun_m_(\d+)_pa$")
