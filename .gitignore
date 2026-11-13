@@ -10,6 +10,7 @@ __pycache__/
 
 # Exportações brutas do Colab (geradas pelo notebook de diagnóstico)
 notebooks/*.geojson
+docs/
 
 # Dependências e build do site (React + Vite)
 node_modules/

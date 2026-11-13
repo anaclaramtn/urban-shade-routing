@@ -3,7 +3,8 @@ import { L, criarPanes } from "../../lib/leaflet.js";
 import { mensagemErro } from "../../lib/dados.js";
 import { corViridis, LOG10_FLUXO } from "../../lib/cores.js";
 import { fmt, plural } from "../../lib/formato.js";
-import { HORA, capacidade, chaveSol, distribuir } from "../../lib/plantio.js";
+import { HORA, capacidade, chaveSol, distribuir, prepararProporcional, aplicarProporcional } from "../../lib/plantio.js";
+import { corPorN } from "../../lib/cores.js";
 import { useMapaLeaflet } from "../../hooks/useMapaLeaflet.js";
 import { useArestasPlantio } from "../../hooks/useArestasPlantio.js";
 import { useCamadaGeojson } from "../../hooks/useCamadaGeojson.js";
@@ -18,9 +19,24 @@ const RECORTE = L.latLngBounds([[-3.7185, -38.5610], [-3.7065, -38.5490]]);
 
 const fundo = geojson => L.geoJSON(geojson, { pane: "graph", interactive: false, style: () => ({ color: "#bdbdbd", opacity: .7, weight: .8 }) });
 
-function InfoAresta({ D, r, la, i, arvore }) {
+function InfoAresta({ D, r, la, i, arvore, modelo }) {
+  if (modelo === 1) {
+    const ni = r.n(i);
+    return (
+      <>
+        <h4>{`Rua com ${plural(ni, "árvore", "árvores")}`}</h4>
+        <div className="numeros">
+          <div><span>Fluxo</span><strong>{fmt(D.F[i], 2)}</strong><span>log10 {fmt(Math.log10(D.F[i]), 3)}</span></div>
+          <div><span>N·F/ΣF (bruto)</span><strong>{fmt(r.bruto(i), 4)}</strong></div>
+          <div><span>Cobertura nᵢ·lₐ</span><strong>{fmt(ni * la, 2)} m</strong></div>
+          <div><span>Comprimento</span><strong>{fmt(D.L[i], 1)} m</strong></div>
+        </div>
+        <div className="extra">Ignora o sol · aresta {D.id[i]}</div>
+      </>
+    );
+  }
   const Spct = D.S[chaveSol()][i];
-  const sol = (Spct / 100) * D.L[i], cap = capacidade(Spct, D.L[i], la), ni = r.n[i];
+  const sol = (Spct / 100) * D.L[i], cap = capacidade(Spct, D.L[i], la), ni = r.n(i);
   const titulo = ni === 0 ? "Rua sem árvores"
     : arvore && arvore <= ni ? `Árvore ${arvore} de ${ni} nesta rua`
     : `Rua com ${plural(ni, "árvore", "árvores")}`;
@@ -38,7 +54,11 @@ function InfoAresta({ D, r, la, i, arvore }) {
   );
 }
 
-export default function MapaPlantioDetalhe() {
+// modelo 1: árvores proporcionais ao fluxo, sem olhar o sol. modelo 2: árvores só na parte ao sol (7h).
+export function MapaDetalheModelo1() { return <MapaPlantioDetalhe modelo={1} />; }
+export function MapaDetalheModelo2() { return <MapaPlantioDetalhe modelo={2} />; }
+
+export default function MapaPlantioDetalhe({ modelo = 2 }) {
   const ref = useRef(null);
   const map = useMapaLeaflet(ref, el => {
     const m = L.map(el, { preferCanvas: true, maxBounds: RECORTE.pad(.35), maxBoundsViscosity: 1 });
@@ -76,10 +96,12 @@ export default function MapaPlantioDetalhe() {
 
   const { dados: D, erro } = useArestasPlantio();
   const { la, setLa, N, setN, calculo } = useParametrosPlantio();
-  const r = useMemo(
-    () => D && distribuir(D.F, D.L, D.S[chaveSol()], D.ordem, calculo.la, calculo.N),
-    [D, calculo]
-  );
+  const r = useMemo(() => {
+    if (!D) return null;
+    if (modelo === 1) return aplicarProporcional(prepararProporcional(D.F, D.L, D.ordem), calculo.la, calculo.N);
+    const x = distribuir(D.F, D.L, D.S[chaveSol()], D.ordem, calculo.la, calculo.N);
+    return { ...x, n: i => x.n[i] };
+  }, [D, calculo, modelo]);
 
   const noRecorte = useMemo(() => {
     if (!D) return [];
@@ -96,7 +118,8 @@ export default function MapaPlantioDetalhe() {
   const ligarHover = useMemo(() => {
     if (!D) return null;
     const rotulo = i => {
-      const ni = atual.current ? atual.current.n[i] : 0;
+      const ni = atual.current ? atual.current.n(i) : 0;
+      if (modelo === 1) return `Fluxo ${fmt(D.F[i], 0)} · ${plural(ni, "árvore", "árvores")}`;
       return `Fluxo ${fmt(D.F[i], 0)} · ${ni ? plural(ni, "árvore", "árvores") : "sem árvores"}`;
     };
     return (camada, i, arvore) => {
@@ -110,7 +133,7 @@ export default function MapaPlantioDetalhe() {
       if (!arvore) camada.on("mouseout", () => camada.setStyle({ weight: camada.options.pesoOriginal }));
       return camada;
     };
-  }, [D]);
+  }, [D, modelo]);
 
   const linha = (g, opcoes, i) => ligarHover(L.polyline(g, { ...opcoes, pesoOriginal: opcoes.weight }), i);
 
@@ -131,9 +154,15 @@ export default function MapaPlantioDetalhe() {
   useEffect(() => {
     if (!camadas || !ligarHover || !r) return;
     for (const i of noRecorte) {
-      const k = r.n[i];
+      const k = r.n(i);
       if (!k) continue;
       const g = D.geom[i];
+      if (modelo === 1) {
+        // Fracionário: cor e espessura proporcionais a nᵢ (não há árvore inteira para desenhar).
+        const t = Math.sqrt(Math.min(1, k * calculo.la / D.L[i]));
+        linha(g, { renderer: render.planted, color: corPorN(t), weight: 3 + 5 * t, opacity: .9 }, i).addTo(camadas.plantadas);
+        continue;
+      }
       linha(g, { renderer: render.planted, color: "#1a9641", weight: 4, opacity: .55 }, i).addTo(camadas.plantadas);
       for (let j = 0; j < k; j++) {
         const t = (j + .5) / k;
@@ -143,23 +172,23 @@ export default function MapaPlantioDetalhe() {
       }
     }
     return () => { camadas.plantadas.clearLayers(); camadas.arvores.clearLayers(); };
-  }, [camadas, render, D, r, noRecorte, ligarHover]);
+  }, [camadas, render, D, r, noRecorte, ligarHover, modelo, calculo.la]);
 
   const resumo = useMemo(() => {
     if (!r) return null;
     let arvores = 0, arestas = 0;
-    for (const i of noRecorte) if (r.n[i]) { arvores += r.n[i]; arestas++; }
+    for (const i of noRecorte) if (r.n(i)) { arvores += r.n(i); arestas++; }
     return { arvores, arestas };
   }, [r, noRecorte]);
 
   let info;
-  if (selecionada && D && r) info = <InfoAresta D={D} r={r} la={calculo.la} {...selecionada} />;
+  if (selecionada && D && r) info = <InfoAresta D={D} r={r} la={calculo.la} modelo={modelo} {...selecionada} />;
   else if (erro) info = mensagemErro(erro);
   else info = <span className="dica">{D ? `${fmt(noRecorte.length)} ruas com fluxo neste recorte.` : "Carregando arestas…"}</span>;
 
   return (
     <div ref={ref} className="mapa mapa--detalhe" aria-label="Recorte interativo mostrando onde as árvores são plantadas de acordo com o fluxo">
-      <ControleLeaflet map={map} position="topleft" className="box map-title">Recorte: onde as árvores são plantadas</ControleLeaflet>
+      <ControleLeaflet map={map} position="topleft" className="box map-title">{modelo === 1 ? "Modelo 1 · recorte: árvores proporcionais ao fluxo" : "Modelo 2 · recorte: árvores na parte ao sol"}</ControleLeaflet>
       <ControleLeaflet map={map} position="bottomleft" className="box info">{info}</ControleLeaflet>
       <ControleLeaflet map={map} position="topright" className="box panel">
         <details open>
@@ -175,7 +204,8 @@ export default function MapaPlantioDetalhe() {
       </ControleLeaflet>
       <ControleLeaflet map={map} position="bottomright" className="box legend">
         <LegendaGradiente titulo="Arestas — log10 do fluxo" min="−2,51" max="3,66" />
-        <div className="legend-row"><span className="tree-dot" />Árvore plantada</div>
+        {modelo === 2 && <div className="legend-row"><span className="tree-dot" />Árvore plantada</div>}
+        {modelo === 1 && <div className="legend-row"><span className="tree-dot" />Verde mais escuro = maior parte da rua coberta (nᵢ·lₐ/L)</div>}
         <div className="legend-row"><span className="grey-line" />Aresta com fluxo</div>
       </ControleLeaflet>
     </div>

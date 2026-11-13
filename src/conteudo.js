@@ -17,11 +17,11 @@ export const PARTES = [
     numero: "02",
     status: "Em andamento",
     titulo: "Onde plantar as árvores",
-    resumo: "Distribui um número fixo de árvores pelos trechos de maior fluxo para reduzir a exposição ao sol.",
+    resumo: "Distribui um número fixo de árvores pelos trechos de maior fluxo para reduzir a exposição ao sol, em dois modelos.",
     feito: [
-      "Cálculo do sol disponível em cada aresta às 7h.",
-      "Ordenação das arestas pelo fluxo da Parte 1.",
-      "Preenchimento guloso até acabarem as árvores, com a redução da exposição J."
+      "Modelo 1: árvores proporcionais ao fluxo de cada trecho, sem considerar o sol.",
+      "Modelo 2: cálculo do sol disponível em cada aresta (7h e 11h) e preenchimento guloso a partir do maior fluxo.",
+      "Teste de mesa dos dois modelos e mapa comparativo da cidade, com seletor de modelo e horário."
     ]
   },
   {

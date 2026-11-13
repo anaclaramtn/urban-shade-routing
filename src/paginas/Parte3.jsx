@@ -19,6 +19,16 @@ export default function Parte3() {
         <PassoAPasso passos={PASSOS} />
       </Metodologia>
 
+      <Metodologia id="teste-de-mesa" rotulo="Teste de mesa" titulo="Execução registrada passo a passo"
+        intro="A ser preenchido quando o algoritmo de rotas pela sombra estiver definido.">
+        <p>
+          Pendente: o algoritmo desta parte ainda não foi especificado. Quando for, seguir o mesmo padrão das
+          Partes 1 e 2: dados de entrada em tabela, uma etapa por decisão do algoritmo (com a regra aplicada e os
+          valores intermediários) e conferências numéricas no fim. Os números devem ser gerados pelo próprio código
+          em <code>src/lib/testeMesa.js</code>, nunca digitados à mão.
+        </p>
+      </Metodologia>
+
       <NavegacaoPartes id="parte-3" />
     </>
   );

@@ -15,10 +15,10 @@ const nDePosicao = p => p <= 0 ? 0 : Math.round(N_MAX ** (p / PASSOS_LOG));
 
 // Horário (fixo), lₐ e N. O controle deslizante de N usa passo 1 para não
 // arredondar o valor digitado; digitar fora da faixa amplia a faixa.
-export default function ControlesPlantio({ la, setLa, N, setN, rotuloLa, rotuloN, escalaLog = false }) {
+export default function ControlesPlantio({ la, setLa, N, setN, rotuloLa, rotuloN, escalaLog = false, horario = <span>{HORA}h</span> }) {
   return (
     <>
-      <div className="ctrl"><label>Horário <span>{HORA}h</span></label></div>
+      <div className="ctrl"><label>Horário {horario}</label></div>
       <div className="ctrl">
         <label>
           {rotuloLa}{" "}

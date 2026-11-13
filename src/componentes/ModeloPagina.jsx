@@ -15,13 +15,13 @@ export function TopoParte({ numero, rotulo, titulo, children }) {
 }
 
 // Bloco de metodologia: título da seção + conteúdo.
-export function Metodologia({ id, titulo, intro, children }) {
+export function Metodologia({ id, titulo, intro, rotulo = "Metodologia", children }) {
   return (
     <section className="content-section content-section--divided" id={id} aria-labelledby={`${id}-titulo`}>
       <div className="shell">
         <header className="section-heading section-heading--split">
           <div className="section-heading__body">
-            <p className="eyebrow">Metodologia</p>
+            <p className="eyebrow">{rotulo}</p>
             <h2 id={`${id}-titulo`}>{titulo}</h2>
           </div>
           {intro && <p className="section-heading__intro">{intro}</p>}

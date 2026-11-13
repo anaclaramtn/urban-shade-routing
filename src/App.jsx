@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import Cabecalho from "./componentes/Cabecalho.jsx";
 import MapaFluxo from "./componentes/mapas/MapaFluxo.jsx";
 import MapaPlantio from "./componentes/mapas/MapaPlantio.jsx";
-import MapaPlantioDetalhe from "./componentes/mapas/MapaPlantioDetalhe.jsx";
+import MapaPlantioDetalhe, { MapaDetalheModelo1, MapaDetalheModelo2 } from "./componentes/mapas/MapaPlantioDetalhe.jsx";
 import Abertura from "./secoes/Abertura.jsx";
 import Motivacao from "./secoes/Motivacao.jsx";
 import Partes from "./secoes/Partes.jsx";
@@ -18,7 +18,8 @@ import { useRota } from "./lib/rota.js";
 const MAPAS = {
   fluxo: { Mapa: MapaFluxo, titulo: "Mapa geral interativo" },
   plantio: { Mapa: MapaPlantio, titulo: "Plantio de árvores — distribuição por fluxo" },
-  detalhe: { Mapa: MapaPlantioDetalhe, titulo: "Como o plantio é decidido — recorte" }
+  detalhe: { Mapa: MapaDetalheModelo2, titulo: "Modelo 2 — recorte rua a rua" },
+  "detalhe-1": { Mapa: MapaDetalheModelo1, titulo: "Modelo 1 — recorte rua a rua" }
 };
 
 function Inicio() {

@@ -1,6 +1,7 @@
 import FiguraMapa from "../componentes/FiguraMapa.jsx";
 import Metricas from "../componentes/Metricas.jsx";
 import PassoAPasso from "../componentes/PassoAPasso.jsx";
+import TesteMesaParte1 from "./TesteMesaParte1.jsx";
 import { TopoParte, Metodologia, NavegacaoPartes } from "../componentes/ModeloPagina.jsx";
 import MapaFluxo from "../componentes/mapas/MapaFluxo.jsx";
 import { NUMEROS_METODOLOGIA } from "../conteudo.js";
@@ -45,6 +46,11 @@ export default function Parte1() {
       <Metodologia id="metodologia" titulo="Passo a passo do algoritmo"
         intro="O problema: saber quais trechos de rua concentram mais pessoas a caminho do transporte coletivo. A solução é transformar a pergunta em rotas numa rede e contar quantas rotas passam por cada trecho.">
         <PassoAPasso passos={PASSOS} />
+      </Metodologia>
+
+      <Metodologia id="teste-de-mesa" rotulo="Teste de mesa" titulo="Execução registrada passo a passo"
+        intro="Cada decisão do algoritmo é anotada com os valores intermediários, de modo que qualquer resultado pode ser refeito à mão e conferido.">
+        <TesteMesaParte1 />
       </Metodologia>
 
       <section className="content-section content-section--divided" aria-labelledby="numeros-p1-titulo">

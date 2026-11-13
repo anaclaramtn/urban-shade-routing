@@ -1,9 +1,12 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { L, LIMITES_CIDADE, criarPanes } from "../../lib/leaflet.js";
 import { mensagemErro } from "../../lib/dados.js";
 import { corPorN } from "../../lib/cores.js";
 import { fmt } from "../../lib/formato.js";
-import { HORA, chaveSol, distribuir } from "../../lib/plantio.js";
+import {
+  chaveSol, prepararGuloso, aplicarGuloso, prepararProporcional, aplicarProporcional
+} from "../../lib/plantio.js";
+import { camadaArestas } from "../../lib/camadaArestas.js";
 import { useMapaLeaflet } from "../../hooks/useMapaLeaflet.js";
 import { useArestasPlantio } from "../../hooks/useArestasPlantio.js";
 import { useCamadaGeojson } from "../../hooks/useCamadaGeojson.js";
@@ -11,89 +14,139 @@ import { useParametrosPlantio } from "../../hooks/useParametrosPlantio.js";
 import ControleLeaflet from "./ControleLeaflet.jsx";
 import ControlesPlantio from "./ControlesPlantio.jsx";
 
-// Mapa 2 (Etapa 2): distribuição das N árvores pelas arestas de maior fluxo na cidade toda.
+// Mapa grande da Parte 2: um seletor escolhe o modelo (e, no Modelo 2, o horário).
+//   Modelo 1: árvores proporcionais ao fluxo, ignorando o sol (não depende de horário).
+//   Modelo 2: árvores só na parte ao sol, das arestas de maior fluxo para as de menor.
 
-const fundo = geojson => L.geoJSON(geojson, { pane: "graph", interactive: false, style: () => ({ color: "#bdbdbd", opacity: .6, weight: .45 }) });
+const CENARIOS = [
+  { id: "m1", modelo: 1, hora: null, rotulo: "Modelo 1 · proporcional ao fluxo (ignora o sol)" },
+  { id: "m2-7", modelo: 2, hora: 7, rotulo: "Modelo 2 · plantio na parte ao sol · 7h" },
+  { id: "m2-11", modelo: 2, hora: 11, rotulo: "Modelo 2 · plantio na parte ao sol · 11h" }
+];
+
+const BALDES = 24;
+const ESTILOS = Array.from({ length: BALDES }, (_, b) => {
+  const t = (b + .5) / BALDES;
+  return { color: corPorN(t), weight: 1.6 + 4.4 * t };
+});
+const balde = t => Math.min(BALDES - 1, Math.max(0, Math.floor(t * BALDES)));
+
 const limite = geojson => L.geoJSON(geojson, { pane: "boundary", interactive: false, style: () => ({ color: "#111", fillOpacity: 0, opacity: .85, weight: 1.4 }) });
 
 export default function MapaPlantio() {
   const ref = useRef(null);
   const map = useMapaLeaflet(ref, el => {
-    const m = L.map(el, { preferCanvas: true });
+    const m = L.map(el);
     m.fitBounds(LIMITES_CIDADE);
     L.control.scale().addTo(m);
-    criarPanes(m, [["graph", 350], ["flow", 450], ["boundary", 550]]);
+    criarPanes(m, [["flow", 450], ["boundary", 550]]);
     return m;
   });
-  const renderer = useMemo(() => map && L.canvas({ pane: "flow", padding: .5, tolerance: 4 }), [map]);
-  useCamadaGeojson(map, "grafo_fundo.topojson", fundo);
   useCamadaGeojson(map, "limite_territorial.topojson", limite);
 
   const { dados: D, erro } = useArestasPlantio();
   const { la, setLa, N, setN, calculo } = useParametrosPlantio();
-  const r = useMemo(
-    () => D && distribuir(D.F, D.L, D.S[chaveSol()], D.ordem, calculo.la, calculo.N),
-    [D, calculo]
+  const [cenarioId, setCenarioId] = useState("m2-7");
+  const cenario = CENARIOS.find(c => c.id === cenarioId);
+
+  // Parte que não depende de N: refeita só quando muda o modelo, o horário ou lₐ.
+  const prop = useMemo(() => D && prepararProporcional(D.F, D.L, D.ordem), [D]);
+  const guloso = useMemo(
+    () => D && cenario.modelo === 2 && prepararGuloso(D.F, D.L, D.S[chaveSol(cenario.hora)], D.ordem, calculo.la),
+    [D, cenario, calculo.la]
   );
+  // Parte que depende de N: busca binária (Modelo 2) ou uma conta (Modelo 1).
+  const r = useMemo(() => {
+    if (!D) return null;
+    return cenario.modelo === 1 ? aplicarProporcional(prop, calculo.la, calculo.N) : aplicarGuloso(guloso, calculo.N);
+  }, [D, cenario, prop, guloso, calculo]);
 
-  // Valores atuais lidos pelos rótulos e popups do Leaflet.
-  const atual = useRef({ r: null, la: calculo.la });
-  useEffect(() => { atual.current = { r, la: calculo.la }; }, [r, calculo.la]);
+  // Valores atuais lidos pelo rótulo e pelo popup.
+  const atual = useRef({});
+  atual.current = { r, la: calculo.la, cenario, D };
 
-  // Rótulo ao passar o mouse (fluxo) e popup ao clicar (detalhes da aresta).
-  const interagir = useMemo(() => {
+  // Camada de canvas (criada uma vez por conjunto de dados).
+  const camada = useMemo(() => {
     if (!map || !D) return null;
-    const abrirPopup = (i, latlng) => {
-      const { r, la } = atual.current;
-      const S = D.S[chaveSol()][i] / 100;
-      const sol = S * D.L[i], ni = r ? r.n[i] : 0;
-      const linhas = [
-        ["Fluxo F", fmt(D.F[i], 2)],
-        ["log10", fmt(Math.log10(D.F[i]), 3)],
-        ["Comprimento L", `${fmt(D.L[i], 1)} m`],
-        [`Fração ao sol S (${HORA}h)`, `${fmt(S * 100)}%`],
-        ["Sol S·L", `${fmt(sol, 1)} m`],
-        ["Capacidade ⌊S·L/lₐ⌋", fmt(Math.floor(sol / la + 1e-9))],
-        ["<b>Árvores nᵢ</b>", `<b>${ni}</b>`],
-        ["Sol restante", `${fmt(Math.max(sol - ni * la, 0), 1)} m`]
-      ];
-      L.popup().setLatLng(latlng).setContent(
-        `<strong>Aresta ${D.id[i]}</strong><table>${linhas.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join("")}</table>`
-      ).openOn(map);
-    };
-    return (linha, i) => linha
-      .bindTooltip(() => `Fluxo: ${fmt(D.F[i], 2)} pessoas`, { sticky: true, direction: "top", offset: [0, -6] })
-      .on("click", e => abrirPopup(i, e.latlng));
+    const tooltip = L.tooltip({ direction: "top", offset: [0, -8], opacity: .95 });
+    return camadaArestas(D.geom, {
+      pane: "flow",
+      fundo: { color: "#7d8590", weight: 1, opacity: .55 },
+      aoPassar: (i, latlng) => {
+        if (i < 0) { tooltip.remove(); return; }
+        const { r, D } = atual.current;
+        const ni = r ? r.n(i) : 0;
+        const txt = ni > 0 ? `${fmt(ni)} ${ni === 1 ? "árvore" : "árvores"}` : "sem árvores";
+        tooltip.setLatLng(latlng).setContent(`Fluxo ${fmt(D.F[i], 2)} · ${txt}`);
+        if (!map.hasLayer(tooltip)) tooltip.addTo(map);
+      },
+      aoClicar: (i, latlng) => {
+        const { r, la, cenario, D } = atual.current;
+        const ni = r.n(i), comprimento = D.L[i];
+        const linhas = [["Fluxo F", fmt(D.F[i], 2)], ["Comprimento L", `${fmt(comprimento, 1)} m`]];
+        if (cenario.modelo === 1) {
+          linhas.push(["N·F/ΣF (bruto)", fmt(r.bruto(i), 4)], ["<b>nᵢ = mín(⌈bruto⌉, restante)</b>", `<b>${fmt(ni)}</b>`], ["Cobertura nᵢ·lₐ", `${fmt(ni * la, 2)} m`], ["Cabem na rua (L/lₐ)", fmt(comprimento / la, 1)]);
+        } else {
+          const S = D.S[chaveSol(cenario.hora)][i] / 100;
+          linhas.push(
+            [`Fração ao sol S (${cenario.hora}h)`, `${fmt(S * 100)}%`],
+            ["Sol S·L", `${fmt(S * comprimento, 1)} m`],
+            ["Capacidade ⌊S·L/lₐ⌋", fmt(Math.floor(S * comprimento / la + 1e-9))],
+            ["<b>Árvores nᵢ</b>", `<b>${fmt(ni)}</b>`],
+            ["Sol restante", `${fmt(Math.max(S * comprimento - ni * la, 0), 1)} m`]
+          );
+        }
+        L.popup().setLatLng(latlng).setContent(
+          `<strong>Aresta ${D.id[i]}</strong><table>${linhas.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join("")}</table>`
+        ).openOn(map);
+      }
+    });
   }, [map, D]);
 
-  // Todas as arestas com fluxo, em cinza (desenhadas uma vez).
   useEffect(() => {
-    if (!interagir) return;
-    const base = L.layerGroup().addTo(map);
-    D.geom.forEach((g, i) => {
-      if (g) interagir(L.polyline(g, { renderer, color: "#7d8590", weight: 1, opacity: .6 }), i).addTo(base);
-    });
-    return () => base.remove();
-  }, [map, D, renderer, interagir]);
+    if (!camada) return;
+    camada.addTo(map);
+    return () => { camada.remove(); };
+  }, [map, camada]);
 
-  // Arestas que recebem árvores: cor e espessura por nᵢ (escala em raiz quadrada).
+  // Redesenho: só os índices de destaque e os baldes mudam.
   useEffect(() => {
-    if (!interagir || !r) return;
-    const destaque = L.layerGroup().addTo(map);
-    const raiz = Math.sqrt(Math.max(r.nMax, 1));
-    for (const i of D.ordem) {
-      const k = r.n[i];
-      if (!k || !D.geom[i]) continue;
-      const t = r.nMax > 1 ? (Math.sqrt(k) - 1) / (raiz - 1) : 1;
-      interagir(L.polyline(D.geom[i], { renderer, color: corPorN(t), weight: 2.5 + 5.5 * t, opacity: .95 }), i).addTo(destaque);
+    if (!camada || !r) return;
+    if (cenario.modelo === 1) {
+      // Cor = fração da rua coberta pelas árvores, nᵢ·lₐ/L (escala de raiz quadrada).
+      // Muda com N e com lₐ; a partir de 100 % a rua fica na cor mais escura.
+      const lA = calculo.la;
+      // Só as ruas com árvore (as r.arestas primeiras da ordem); menor fluxo primeiro, o maior fica por cima.
+      const indices = [];
+      for (let p = Math.min(r.arestas, D.ordem.length) - 1; p >= 0; p--) indices.push(D.ordem[p]);
+      camada.definir({
+        indices,
+        balde: i => balde(Math.sqrt(Math.min(1, r.n(i) * lA / D.L[i]))),
+        estilos: ESTILOS
+      });
+      return;
     }
-    return () => destaque.remove();
-  }, [map, D, r, renderer, interagir]);
+    const indices = [];
+    for (let p = Math.min(r.k, D.ordem.length - 1); p >= 0; p--) {
+      const i = D.ordem[p];
+      if (r.n(i) > 0) indices.push(i); // menor fluxo primeiro: o de maior fluxo fica por cima
+    }
+    const raiz = Math.sqrt(Math.max(r.nMax, 1));
+    camada.definir({
+      indices,
+      balde: i => balde(r.nMax > 1 ? (Math.sqrt(r.n(i)) - 1) / (raiz - 1) : 1),
+      estilos: ESTILOS
+    });
+  }, [camada, D, r, cenario, calculo.la]);
 
   function enquadrar() {
     if (!r) return;
     const pontos = [];
-    r.n.forEach((k, i) => { if (k && D.geom[i]) pontos.push(...D.geom[i]); });
+    const fim = cenario.modelo === 1 ? r.arestas - 1 : r.k;
+    for (let p = 0; p <= Math.min(fim, D.ordem.length - 1); p++) {
+      const i = D.ordem[p];
+      if (r.n(i) > 0 && D.geom[i]) pontos.push(...D.geom[i]);
+    }
     if (pontos.length) map.fitBounds(L.latLngBounds(pontos), { padding: [30, 30] });
   }
 
@@ -101,34 +154,54 @@ export default function MapaPlantio() {
     : D ? `${fmt(D.F.length)} arestas com fluxo > 0`
     : "Carregando arestas…";
   const reducao = r ? r.jOld - r.jNovo : 0;
+  const m1 = cenario.modelo === 1;
 
   return (
-    <div ref={ref} className="mapa mapa--plantio" aria-label="Mapa interativo da distribuição de árvores pelas arestas de maior fluxo">
-      <ControleLeaflet map={map} position="topleft" className="map-title">Plantio de árvores por fluxo</ControleLeaflet>
+    <div ref={ref} className="mapa mapa--plantio" aria-label="Mapa interativo da distribuição de árvores, com seletor de modelo e horário">
+      <ControleLeaflet map={map} position="topleft" className="map-title">Plantio de árvores · comparação de modelos</ControleLeaflet>
       <ControleLeaflet map={map} position="bottomleft" className="load-status">{status}</ControleLeaflet>
       <ControleLeaflet map={map} position="topright" className="panel">
         <details open>
-          <summary>Parâmetros e resultado</summary>
+          <summary>Modelo, parâmetros e resultado</summary>
+          <div className="ctrl">
+            <label htmlFor="cenario-plantio">Modelo e horário</label>
+            <select id="cenario-plantio" value={cenarioId} onChange={e => setCenarioId(e.target.value)} style={{ width: "100%" }}>
+              {CENARIOS.map(c => <option key={c.id} value={c.id}>{c.rotulo}</option>)}
+            </select>
+          </div>
           <ControlesPlantio la={la} setLa={setLa} N={N} setN={setN}
-            rotuloLa="lₐ (m de sol por árvore)" rotuloN="N (árvores)" escalaLog />
+            rotuloLa="lₐ (m de sol por árvore)" rotuloN="N (árvores)" escalaLog
+            horario={<span>{m1 ? "não se aplica" : `${cenario.hora}h`}</span>} />
           <table>
             <tbody>
-              <tr><td>J_old = Σ F·S·L</td><td>{r ? fmt(r.jOld) : "—"}</td></tr>
-              <tr><td>J_novo = J_old − lₐ·Σ F·n</td><td>{r ? fmt(r.jNovo) : "—"}</td></tr>
+              <tr><td>{m1 ? "J₁ = Σ F·L" : "J_antes = Σ F·S·L"}</td><td>{r ? fmt(r.jOld) : "—"}</td></tr>
+              <tr><td>{m1 ? "J₁ depois = J₁ − lₐ·ΣF·n" : "J_depois = J_antes − lₐ·ΣF·n"}</td><td>{r ? fmt(r.jNovo) : "—"}</td></tr>
               <tr><td>Redução de J (pessoas·m)</td><td>{r ? fmt(reducao) : "—"}</td></tr>
               <tr className="result"><td>Redução</td><td>{r && r.jOld > 0 ? `${fmt(100 * reducao / r.jOld, 4)}%` : "—"}</td></tr>
-              <tr><td>Árvores plantadas</td><td>{r ? `${fmt(r.plantadas)} / ${fmt(calculo.N)}` : "—"}</td></tr>
-              <tr><td>Arestas com árvores</td><td>{r ? fmt(r.arestas) : "—"}</td></tr>
-              <tr><td>Capacidade Σ⌊S·L/lₐ⌋</td><td>{r ? fmt(r.capTotal) : "—"}</td></tr>
+              {m1 ? (
+                <>
+                  <tr><td>Árvores plantadas</td><td>{r ? `${fmt(r.plantadas)} / ${fmt(calculo.N)}` : "—"}</td></tr>
+                  <tr><td>Arestas com árvores</td><td>{r ? fmt(r.arestas) : "—"}</td></tr>
+                  <tr><td>Máx. nᵢ em uma rua</td><td>{r ? fmt(r.nMax) : "—"}</td></tr>
+                  <tr><td>Ruas com nᵢ·lₐ &gt; L</td><td>{r ? fmt(r.saturadas) : "—"}</td></tr>
+                </>
+              ) : (
+                <>
+                  <tr><td>Árvores plantadas</td><td>{r ? `${fmt(r.plantadas)} / ${fmt(calculo.N)}` : "—"}</td></tr>
+                  <tr><td>Arestas com árvores</td><td>{r ? fmt(r.arestas) : "—"}</td></tr>
+                  <tr><td>Capacidade Σ⌊S·L/lₐ⌋</td><td>{r ? fmt(r.capTotal) : "—"}</td></tr>
+                </>
+              )}
             </tbody>
           </table>
           <div className="warning">
-            {r && r.plantadas < calculo.N
+            {r && !m1 && r.plantadas < calculo.N
               ? `A rede comporta só ${fmt(r.capTotal)} árvores com lₐ = ${fmt(calculo.la, 1)} m; ${fmt(calculo.N - r.plantadas)} ficaram sem lugar.`
               : ""}
+            {m1 ? "Modelo 1: ruas por fluxo decrescente recebem nᵢ = mín(⌈N·F/ΣF⌉, restante), até somar exatamente N. Cor = fração da rua coberta (nᵢ·lₐ/L). Ignora o sol; J₁ trata a rua toda como exposta e não é comparável diretamente com o J do Modelo 2." : ""}
           </div>
           <div className="legend-gradient legend-gradient--verde" />
-          <div className="legend-range"><span>nᵢ = 1</span><span>{r && r.nMax ? `nᵢ = ${r.nMax}` : "—"}</span></div>
+          <div className="legend-range"><span>{m1 ? "0 % da rua coberta" : "nᵢ = 1"}</span><span>{m1 ? "100 % ou mais" : r && r.nMax ? `nᵢ = ${fmt(r.nMax, 0)}` : "—"}</span></div>
           <button type="button" onClick={enquadrar}>Enquadrar arestas com árvores</button>
         </details>
       </ControleLeaflet>

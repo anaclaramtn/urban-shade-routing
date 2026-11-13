@@ -832,3 +832,94 @@ h2 {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; }
 }
+
+/* ---------- Teste de mesa ---------- */
+.mesa { margin-top: 8px; }
+.mesa__titulo { margin: 0 0 12px; font-size: 1.45rem; letter-spacing: -.02em; }
+.mesa__enunciado { max-width: 820px; color: var(--ink-soft); }
+.mesa__enunciado p { margin: 0 0 10px; }
+
+.mesa__etapas {
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: etapa;
+  border-top: 2px solid var(--green);
+}
+
+.mesa__etapa {
+  padding-block: 28px;
+  border-bottom: 1px solid var(--line);
+  counter-increment: etapa;
+}
+
+.mesa__etapa > h4 { margin: 0 0 10px; font-size: 1.15rem; line-height: 1.25; }
+.mesa__etapa > h4::before {
+  content: "Etapa " counter(etapa) " · ";
+  color: var(--green-mid);
+  font-weight: 800;
+}
+
+.mesa__etapa p { max-width: 820px; margin: 0 0 12px; color: var(--ink-soft); }
+.mesa__regra { padding-left: 14px; border-left: 3px solid var(--line); }
+
+.mesa__decisao, .mesa__verificacao {
+  padding: 10px 16px;
+  border-left: 3px solid var(--green-mid);
+  background: var(--green-light);
+  color: var(--ink) !important;
+}
+
+.mesa__verificacao { border-left-color: var(--sun); background: #fbf1cf; }
+
+.mesa__tabela-wrap { overflow-x: auto; margin: 14px 0; }
+
+.mesa__tabela {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: .86rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.mesa__tabela caption {
+  padding-bottom: 6px;
+  color: var(--ink-soft);
+  font-size: .82rem;
+  text-align: left;
+}
+
+.mesa__tabela th, .mesa__tabela td {
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.mesa__tabela thead th { background: var(--green-light); text-align: center; }
+.mesa__tabela tbody th { background: var(--surface); text-align: left; }
+.mesa__tabela td.mesa__texto { min-width: 260px; text-align: left; white-space: normal; }
+.mesa__forte { background: var(--sun); font-weight: 800; }
+.mesa__linha-destaque td, .mesa__linha-destaque th { background: #fbf1cf; }
+.mesa code { font-size: .9em; }
+
+/* Teste de mesa recolhível (páginas curtas, documentação completa um clique adiante) */
+.mesa-recolhivel {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.mesa-recolhivel > summary {
+  padding: 16px 22px;
+  cursor: pointer;
+  font-weight: 800;
+  color: var(--green-mid);
+}
+.mesa-recolhivel[open] > summary { border-bottom: 1px solid var(--line); }
+.mesa-recolhivel > .mesa-recolhivel__corpo { padding: 8px 22px 26px; }
+.mesa-recolhivel .mesa__titulo { margin-top: 26px; }
+
+.equacao-destaque {
+  margin: 0;
+  font-size: 1.15rem;
+  overflow-x: auto;
+}
