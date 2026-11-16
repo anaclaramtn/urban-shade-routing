@@ -15,49 +15,33 @@ import { capacidade, prepararOrdem, arredondarCima } from "./plantio.js";
 
 export const NODATA = null;
 
-// Raster GHSL 3×3 (linha 0 = norte). Resolução 100 m; canto superior esquerdo (0, 100).
+// Exemplo mínimo: raster 2×2 (linha 0 = norte), células de 100 m, canto superior esquerdo (0, 100).
 export const RASTER = {
   valores: [
-    [NODATA, 25, 20],
-    [0, 40, 10],
-    [30, 15, NODATA]
+    [30, 20],
+    [NODATA, 10]
   ],
   resolucao: 100,
   x0: 0,
   y0: 100
 };
 
-// Nós da rede (coordenadas em metros, CRS projetado).
+// Rede em linha: 1 — 2 — 3 — 4 (coordenadas em metros, CRS projetado).
 export const NOS = [
-  { id: 1, x: 50, y: -140 },
-  { id: 2, x: 100, y: -60 },
-  { id: 3, x: 200, y: 50 },
-  { id: 4, x: 260, y: -30 },
-  { id: 5, x: 170, y: -40 },
-  { id: 6, x: 230, y: -5 },
-  { id: 7, x: 285, y: -10 },
-  { id: 8, x: 150, y: -160 },
-  { id: 9, x: 150, y: -195 }
+  { id: 1, x: 50, y: 50 },
+  { id: 2, x: 150, y: 50 },
+  { id: 3, x: 150, y: -50 },
+  { id: 4, x: 250, y: -50 }
 ];
 
-// Arestas (u, v, chave) com distancia_metros. A chave 1 de 3-6 é uma aresta paralela.
 export const ARESTAS = [
   { u: 1, v: 2, k: 0, L: 100 },
-  { u: 2, v: 3, k: 0, L: 150 },
-  { u: 3, v: 4, k: 0, L: 120 },
-  { u: 2, v: 5, k: 0, L: 80 },
-  { u: 5, v: 6, k: 0, L: 200 },
-  { u: 3, v: 6, k: 0, L: 90 },
-  { u: 3, v: 6, k: 1, L: 95 },
-  { u: 6, v: 7, k: 0, L: 60 },
-  { u: 4, v: 7, k: 0, L: 110 },
-  { u: 8, v: 9, k: 0, L: 40 }
+  { u: 2, v: 3, k: 0, L: 100 },
+  { u: 3, v: 4, k: 0, L: 100 }
 ];
 
 export const PARADAS = [
-  { id: "P1", x: 45, y: -130 },
-  { id: "P2", x: 60, y: -145 },
-  { id: "P3", x: 290, y: 0 }
+  { id: "P1", x: 245, y: -45 }
 ];
 
 export const idAresta = ({ u, v, k }) => `${u}-${v}-${k}`;

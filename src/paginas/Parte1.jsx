@@ -37,12 +37,6 @@ export default function Parte1() {
         A população de cada célula GHSL é encaminhada pela rede de pedestres até uma parada e somada nas arestas utilizadas. Esta parte ainda não usa dados de exposição solar.
       </TopoParte>
 
-      <section className="content-section">
-        <div className="shell">
-          <FiguraMapa id="fluxo" Mapa={MapaFluxo} />
-        </div>
-      </section>
-
       <Metodologia id="metodologia" titulo="Passo a passo do algoritmo"
         intro="O problema: saber quais trechos de rua concentram mais pessoas a caminho do transporte coletivo. A solução é transformar a pergunta em rotas numa rede e contar quantas rotas passam por cada trecho.">
         <PassoAPasso passos={PASSOS} />
@@ -53,20 +47,15 @@ export default function Parte1() {
         <TesteMesaParte1 />
       </Metodologia>
 
-      <section className="content-section content-section--divided" aria-labelledby="numeros-p1-titulo">
-        <div className="shell">
-          <header className="section-heading section-heading--split">
-            <div className="section-heading__body">
-              <p className="eyebrow">Verificação</p>
-              <h2 id="numeros-p1-titulo">Números da metodologia</h2>
-            </div>
-            <p className="section-heading__intro">
-              Estes indicadores ajudam a conferir a associação entre população, rede e transporte coletivo antes do cálculo do fluxo nas arestas.
-            </p>
-          </header>
-          <Metricas itens={NUMEROS_METODOLOGIA} className="metric-grid--stackable" />
-        </div>
-      </section>
+      <Metodologia id="resultado" rotulo="Resultado" titulo="Fluxo potencial na cidade"
+        intro="Cada trecho de rua colorido pelo número de pessoas cujas rotas até a parada passam por ele.">
+        <FiguraMapa id="fluxo" Mapa={MapaFluxo} />
+      </Metodologia>
+
+      <Metodologia id="verificacao" rotulo="Verificação" titulo="Números da metodologia"
+        intro="Estes indicadores ajudam a conferir a associação entre população, rede e transporte coletivo antes do cálculo do fluxo nas arestas.">
+        <Metricas itens={NUMEROS_METODOLOGIA} className="metric-grid--stackable" />
+      </Metodologia>
 
       <NavegacaoPartes id="parte-1" />
     </>

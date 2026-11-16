@@ -40,23 +40,6 @@ const PASSOS_MODELOS = [
   }
 ];
 
-function Secao({ id, rotulo, titulo, intro, children }) {
-  return (
-    <section className="content-section content-section--divided" aria-labelledby={`${id}-titulo`}>
-      <div className="shell">
-        <header className="section-heading section-heading--split">
-          <div className="section-heading__body">
-            <p className="eyebrow">{rotulo}</p>
-            <h2 id={`${id}-titulo`}>{titulo}</h2>
-          </div>
-          <p className="section-heading__intro">{intro}</p>
-        </header>
-        {children}
-      </div>
-    </section>
-  );
-}
-
 export default function Parte2() {
   return (
     <>
@@ -77,25 +60,25 @@ export default function Parte2() {
       <Metodologia id="teste-de-mesa" rotulo="Teste de mesa" titulo="Execução registrada passo a passo"
         intro="Cada decisão dos dois modelos, com os valores intermediários, para conferir à mão.">
         <details className="mesa-recolhivel">
-          <summary>Abrir os 4 testes de mesa (exemplo do PDF e dados reais, para cada modelo)</summary>
+          <summary>Abrir os 2 testes de mesa (um por modelo, com as mesmas 3 ruas)</summary>
           <div className="mesa-recolhivel__corpo"><TesteMesaParte2 /></div>
         </details>
       </Metodologia>
 
-      <Secao id="detalhe-1" rotulo="Modelo 1" titulo="Rua a rua: a rua inteira"
-        intro="Recorte da cidade. Cada rua recebe árvores em proporção ao fluxo; quanto mais escura, maior a parte da rua coberta.">
-        <FiguraMapa id="detalhe-1" Mapa={MapaDetalheModelo1} />
-      </Secao>
-
-      <Secao id="detalhe" rotulo="Modelo 2" titulo="Rua a rua: só o trecho ao sol"
-        intro="O mesmo recorte, agora com árvores inteiras só no sol das 7h.">
-        <FiguraMapa id="detalhe" Mapa={MapaDetalheModelo2} />
-      </Secao>
-
-      <Secao id="comparacao" rotulo="Cidade inteira" titulo="Comparação dos modelos"
+      <Metodologia id="resultado" rotulo="Resultado" titulo="Comparação dos modelos na cidade"
         intro="Escolha o modelo no painel do mapa. O horário (7h ou 11h) vale só para o Modelo 2.">
         <FiguraMapa id="plantio" Mapa={MapaPlantio} />
-      </Secao>
+      </Metodologia>
+
+      <Metodologia id="verificacao-modelo-1" rotulo="Verificação · Modelo 1" titulo="Rua a rua: a rua inteira"
+        intro="Recorte da cidade. Cada rua recebe árvores em proporção ao fluxo; quanto mais escura, maior a parte da rua coberta.">
+        <FiguraMapa id="detalhe-1" Mapa={MapaDetalheModelo1} />
+      </Metodologia>
+
+      <Metodologia id="verificacao-modelo-2" rotulo="Verificação · Modelo 2" titulo="Rua a rua: só o trecho ao sol"
+        intro="O mesmo recorte, agora com árvores inteiras só no sol das 7h.">
+        <FiguraMapa id="detalhe" Mapa={MapaDetalheModelo2} />
+      </Metodologia>
 
       <NavegacaoPartes id="parte-2" />
     </>
