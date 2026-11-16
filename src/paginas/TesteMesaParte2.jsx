@@ -27,25 +27,15 @@ function MesaProporcional({ dados }) {
       }
     >
       <Etapa
-        titulo="Quantas árvores cada rua pede"
-        regra={<>Pedido = <Tex>{String.raw`\lceil N \cdot F_i / \sum F \rceil`}</Tex>, arredondado <strong>para cima</strong>. Aqui <Tex>{String.raw`\sum F`}</Tex> = {fmt(t.soma, 0)}.</>}
+        titulo="Quantas árvores cada rua recebe"
+        regra={<><Tex>{String.raw`n_i = N \cdot F_i / \sum F`}</Tex>, sem arredondar. Aqui <Tex>{String.raw`\sum F`}</Tex> = {fmt(t.soma, 0)}.</>}
       >
         <Tabela
-          cab={["rua", "F", `${dados.N} × F ÷ ${fmt(t.soma, 0)}`, "pedido"]}
-          linhas={t.linhas.map(x => [x.nome, fmt(x.F, 0), fmt(x.bruto, 2), { v: fmt(x.pedido), forte: true }])}
-        />
-      </Etapa>
-
-      <Etapa
-        titulo="Entregar as árvores, da rua de mais fluxo para a de menos"
-        regra={<>Cada rua recebe o menor valor entre o que pediu e o que ainda resta das <Tex>N</Tex> árvores.</>}
-      >
-        <Tabela
-          cab={["ordem", "rua", "pedido", "restam antes", "recebe"]}
-          linhas={ordenadas.map(x => [x.ordem, x.nome, fmt(x.pedido), fmt(x.antes), { v: fmt(x.n), forte: x.n > 0 }])}
+          cab={["ordem", "rua", "F", `${dados.N} × F ÷ ${fmt(t.soma, 0)}`, "recebe"]}
+          linhas={ordenadas.map(x => [x.ordem, x.nome, fmt(x.F, 0), fmt(x.bruto, 2), { v: fmt(x.n, 2), forte: true }])}
         />
         <Decisao>
-          Os pedidos somam {fmt(t.linhas.reduce((s, x) => s + x.pedido, 0))}, mais que {t.N}; por isso a rua de menos fluxo fica sem árvores. Total plantado: {fmt(t.somaN)}.
+          Todas as ruas recebem árvore, em proporção ao fluxo. Total plantado: {fmt(t.somaN, 2)}.
         </Decisao>
       </Etapa>
 
@@ -56,7 +46,7 @@ function MesaProporcional({ dados }) {
         <Tabela
           cab={["rua", "F × L (antes)", `L − ${dados.la} × n`, "F × (L − l_a·n) (depois)"]}
           linhas={[
-            ...t.linhas.map(x => [x.nome, fmt(x.termo, 0), fmt(x.solRestante, 0), fmt(x.F * x.solRestante, 0)]),
+            ...t.linhas.map(x => [x.nome, fmt(x.termo, 0), fmt(x.solRestante, 1), fmt(x.F * x.solRestante, 0)]),
             [T("soma"), { v: fmt(t.j1, 0), forte: true }, "", { v: fmt(t.jNovoDireto, 0), forte: true }]
           ]}
         />

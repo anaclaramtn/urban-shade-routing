@@ -30,8 +30,8 @@ const PASSOS_IDEIA = [
 const PASSOS_MODELOS = [
   {
     titulo: "Modelo 1 · a rua inteira",
-    texto: <p>Ignora o sol: a rua toda conta (<Tex>S=1</Tex>). Cada rua recebe árvores na proporção do seu fluxo. Com ruas de 80, 10, 5 e 5 pessoas, as fatias são 0,8<Tex>N</Tex>, 0,1<Tex>N</Tex>, 0,05<Tex>N</Tex> e 0,05<Tex>N</Tex>. Frações de árvore arredondam para cima (0,4 vira 1). Das ruas de maior fluxo para as de menor, cada uma recebe esse valor até acabarem as <Tex>N</Tex> árvores; ruas de pouco fluxo podem ficar sem. Não há limite por rua.</p>,
-    extra: <Eq>{String.raw`n_i=\min\left(\left\lceil N\,\frac{F_i}{\sum F}\right\rceil,\ \text{restante}\right) \qquad J_1=\sum_i F_i\,L_i`}</Eq>
+    texto: <p>Ignora o sol: a rua toda conta (<Tex>S=1</Tex>). Cada rua recebe árvores na proporção do seu fluxo. Com ruas de 80, 10, 5 e 5 pessoas, as fatias são 0,8<Tex>N</Tex>, 0,1<Tex>N</Tex>, 0,05<Tex>N</Tex> e 0,05<Tex>N</Tex>. Sem arredondar: cada rua recebe a fração exata (com <Tex>N=10</Tex>, uma rua de 0,05<Tex>N</Tex> recebe 0,5 árvore) e o total é sempre <Tex>N</Tex>. Não há limite por rua.</p>,
+    extra: <Eq>{String.raw`n_i=N\,\frac{F_i}{\sum F} \qquad J_1=\sum_i F_i\,L_i`}</Eq>
   },
   {
     titulo: "Modelo 2 · só o trecho ao sol",

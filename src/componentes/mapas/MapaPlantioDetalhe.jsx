@@ -24,7 +24,7 @@ function InfoAresta({ D, r, la, i, arvore, modelo }) {
     const ni = r.n(i);
     return (
       <>
-        <h4>{`Rua com ${plural(ni, "árvore", "árvores")}`}</h4>
+        <h4>{`Rua com ${plural(ni, "árvore", "árvores", 2)}`}</h4>
         <div className="numeros">
           <div><span>Fluxo</span><strong>{fmt(D.F[i], 2)}</strong><span>log10 {fmt(Math.log10(D.F[i]), 3)}</span></div>
           <div><span>N·F/ΣF (bruto)</span><strong>{fmt(r.bruto(i), 4)}</strong></div>
@@ -119,7 +119,7 @@ export default function MapaPlantioDetalhe({ modelo = 2 }) {
     if (!D) return null;
     const rotulo = i => {
       const ni = atual.current ? atual.current.n(i) : 0;
-      if (modelo === 1) return `Fluxo ${fmt(D.F[i], 0)} · ${plural(ni, "árvore", "árvores")}`;
+      if (modelo === 1) return `Fluxo ${fmt(D.F[i], 0)} · ${plural(ni, "árvore", "árvores", 2)}`;
       return `Fluxo ${fmt(D.F[i], 0)} · ${ni ? plural(ni, "árvore", "árvores") : "sem árvores"}`;
     };
     return (camada, i, arvore) => {
@@ -196,7 +196,7 @@ export default function MapaPlantioDetalhe({ modelo = 2 }) {
           <ControlesPlantio la={la} setLa={setLa} N={N} setN={setN} rotuloLa="lₐ" rotuloN="N (cidade toda)" />
           <table>
             <tbody>
-              <tr><td>Árvores neste recorte</td><td>{resumo ? `${fmt(resumo.arvores)} de ${fmt(r.plantadas)}` : "—"}</td></tr>
+              <tr><td>Árvores neste recorte</td><td>{resumo ? `${fmt(resumo.arvores, modelo === 1 ? 1 : 0)} de ${fmt(r.plantadas)}` : "—"}</td></tr>
               <tr><td>Arestas com árvores no recorte</td><td>{resumo ? `${fmt(resumo.arestas)} de ${fmt(noRecorte.length)}` : "—"}</td></tr>
             </tbody>
           </table>

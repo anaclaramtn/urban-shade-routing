@@ -76,7 +76,8 @@ export default function MapaPlantio() {
         if (i < 0) { tooltip.remove(); return; }
         const { r, D } = atual.current;
         const ni = r ? r.n(i) : 0;
-        const txt = ni > 0 ? `${fmt(ni)} ${ni === 1 ? "árvore" : "árvores"}` : "sem árvores";
+        const d = cenario.modelo === 1 ? 2 : 0;
+        const txt = ni > 0 ? `${fmt(ni, d)} ${ni === 1 ? "árvore" : "árvores"}` : "sem árvores";
         tooltip.setLatLng(latlng).setContent(`Fluxo ${fmt(D.F[i], 2)} · ${txt}`);
         if (!map.hasLayer(tooltip)) tooltip.addTo(map);
       },
@@ -85,7 +86,7 @@ export default function MapaPlantio() {
         const ni = r.n(i), comprimento = D.L[i];
         const linhas = [["Fluxo F", fmt(D.F[i], 2)], ["Comprimento L", `${fmt(comprimento, 1)} m`]];
         if (cenario.modelo === 1) {
-          linhas.push(["N·F/ΣF (bruto)", fmt(r.bruto(i), 4)], ["<b>nᵢ = mín(⌈bruto⌉, restante)</b>", `<b>${fmt(ni)}</b>`], ["Cobertura nᵢ·lₐ", `${fmt(ni * la, 2)} m`], ["Cabem na rua (L/lₐ)", fmt(comprimento / la, 1)]);
+          linhas.push(["N·F/ΣF (bruto)", fmt(r.bruto(i), 4)], ["<b>nᵢ = N·F/ΣF</b>", `<b>${fmt(ni, 2)}</b>`], ["Cobertura nᵢ·lₐ", `${fmt(ni * la, 2)} m`], ["Cabem na rua (L/lₐ)", fmt(comprimento / la, 1)]);
         } else {
           const S = D.S[chaveSol(cenario.hora)][i] / 100;
           linhas.push(
@@ -182,7 +183,7 @@ export default function MapaPlantio() {
                 <>
                   <tr><td>Árvores plantadas</td><td>{r ? `${fmt(r.plantadas)} / ${fmt(calculo.N)}` : "—"}</td></tr>
                   <tr><td>Arestas com árvores</td><td>{r ? fmt(r.arestas) : "—"}</td></tr>
-                  <tr><td>Máx. nᵢ em uma rua</td><td>{r ? fmt(r.nMax) : "—"}</td></tr>
+                  <tr><td>Máx. nᵢ em uma rua</td><td>{r ? fmt(r.nMax, m1 ? 2 : 0) : "—"}</td></tr>
                   <tr><td>Ruas com nᵢ·lₐ &gt; L</td><td>{r ? fmt(r.saturadas) : "—"}</td></tr>
                 </>
               ) : (
@@ -198,7 +199,7 @@ export default function MapaPlantio() {
             {r && !m1 && r.plantadas < calculo.N
               ? `A rede comporta só ${fmt(r.capTotal)} árvores com lₐ = ${fmt(calculo.la, 1)} m; ${fmt(calculo.N - r.plantadas)} ficaram sem lugar.`
               : ""}
-            {m1 ? "Modelo 1: ruas por fluxo decrescente recebem nᵢ = mín(⌈N·F/ΣF⌉, restante), até somar exatamente N. Cor = fração da rua coberta (nᵢ·lₐ/L). Ignora o sol; J₁ trata a rua toda como exposta e não é comparável diretamente com o J do Modelo 2." : ""}
+            {m1 ? "Modelo 1: cada rua recebe nᵢ = N·F/ΣF (fracionário, sem arredondar), somando exatamente N. Cor = fração da rua coberta (nᵢ·lₐ/L). Ignora o sol; J₁ trata a rua toda como exposta e não é comparável diretamente com o J do Modelo 2." : ""}
           </div>
           <div className="legend-gradient legend-gradient--verde" />
           <div className="legend-range"><span>{m1 ? "0 % da rua coberta" : "nᵢ = 1"}</span><span>{m1 ? "100 % ou mais" : r && r.nMax ? `nᵢ = ${fmt(r.nMax, 0)}` : "—"}</span></div>

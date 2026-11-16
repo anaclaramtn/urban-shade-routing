@@ -94,24 +94,13 @@ export function aplicarGuloso(p, N) {
 }
 
 /* ------------------------------------------------------------------------ *
- *  Modelo 1 (ignora o sol): árvores proporcionais ao fluxo, com TOTAL EXATO N.
+ *  Modelo 1 (ignora o sol): árvores proporcionais ao fluxo, sem arredondar.
  *
- *    bruto_i = N · Fᵢ / ΣF
- *    Percorre as ruas por fluxo decrescente (empate: menor índice) e dá a cada uma
- *        nᵢ = min( ⌈bruto_i⌉ , árvores restantes )      (arredonda sempre para cima)
- *    até acabarem as N árvores. Como Σ⌈bruto⌉ ≥ Σbruto = N, as N sempre acabam:
- *    Σnᵢ = N (quando N > 0). Ruas de menor fluxo podem ficar com 0.
+ *    nᵢ = N · Fᵢ / ΣF           (fracionário; Σnᵢ = N exato)
  *
  *    J₁      = Σ Fᵢ·Lᵢ            (a rua toda é tratada como exposta)
  *    J₁_novo = J₁ − lₐ · Σ Fᵢ·nᵢ
  * ------------------------------------------------------------------------ */
-
-// ⌈x⌉ tolerando o erro de ponto flutuante perto de inteiros (2,0000000001 não vira 3).
-export function arredondarCima(x) {
-  if (!(x > 0)) return 0;
-  const r = Math.round(x);
-  return r >= 1 && Math.abs(x - r) < 1e-9 * r ? r : Math.ceil(x);
-}
 
 export function prepararProporcional(F, L, ordem = prepararOrdem(F)) {
   let somaF = 0, j1 = 0, comFluxo = 0;
@@ -120,25 +109,21 @@ export function prepararProporcional(F, L, ordem = prepararOrdem(F)) {
 }
 
 export function aplicarProporcional(p, la, N) {
-  const bruto = i => (N > 0 ? N * p.F[i] / p.somaF : 0);
-  const v = new Int32Array(p.F.length);
-  let restante = N > 0 ? N : 0;
-  let ganho = 0, saturadas = 0, nMax = 0, arestas = 0, cortadas = 0;
-  for (let j = 0; j < p.ordem.length && restante > 0; j++) {
+  const bruto = i => (N > 0 && p.somaF > 0 ? N * p.F[i] / p.somaF : 0);
+  const v = new Float64Array(p.F.length);
+  let ganho = 0, saturadas = 0, nMax = 0, arestas = 0;
+  for (let j = 0; j < p.ordem.length; j++) {
     const i = p.ordem[j];
     if (!(p.F[i] > 0)) break;
-    const pedido = arredondarCima(bruto(i));
-    const k = Math.min(pedido, restante);
-    if (k < pedido) cortadas++;
-    v[i] = k; restante -= k;
+    const k = bruto(i);
+    v[i] = k;
     ganho += la * p.F[i] * k;
     arestas++;
     if (k > nMax) nMax = k;
     if (k * la > p.L[i]) saturadas++;   // mais árvores do que cabem na rua
   }
-  const plantadas = (N > 0 ? N : 0) - restante;
+  const plantadas = N > 0 && arestas > 0 ? N : 0;
   return {
-    n: i => v[i], bruto, nMax, jOld: p.j1, jNovo: p.j1 - ganho, ganho, plantadas, arestas, saturadas,
-    cortadas, semArvore: p.comFluxo - arestas
+    n: i => v[i], bruto, nMax, jOld: p.j1, jNovo: p.j1 - ganho, ganho, plantadas, arestas, saturadas
   };
 }

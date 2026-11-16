@@ -7,7 +7,7 @@
 //            nx.multi_source_dijkstra (peso = distancia_metros) → soma nas arestas.
 //   Parte 2: src/lib/plantio.js (a mesma função `capacidade` é usada aqui).
 
-import { capacidade, prepararOrdem, arredondarCima } from "./plantio.js";
+import { capacidade, prepararOrdem } from "./plantio.js";
 
 /* ======================================================================== *
  *  PARTE 1: fluxo potencial
@@ -298,25 +298,15 @@ export const PROPORCIONAL_REAL = {
 
 export function testeMesaProporcional({ la, N, arestas, somaF }) {
   const soma = somaF ?? arestas.reduce((s, a) => s + a.F, 0);
-  // Ordem de atendimento: fluxo decrescente, empate pela ordem de entrada.
+  // Ordem de exibição: fluxo decrescente, empate pela ordem de entrada.
   const ordem = arestas.map((_, i) => i).sort((a, b) => (arestas[b].F - arestas[a].F) || (a - b));
-  const n = new Array(arestas.length).fill(0);
-  const pedido = new Array(arestas.length).fill(0);
-  const antes = new Array(arestas.length).fill(0);
-  let restante = N;
-  for (const i of ordem) {
-    const bruto = N * (arestas[i].F / soma);
-    pedido[i] = arredondarCima(bruto);
-    antes[i] = restante;
-    n[i] = Math.min(pedido[i], restante);
-    restante -= n[i];
-  }
+  const n = arestas.map(a => N * (a.F / soma));
   const linhas = arestas.map((a, i) => {
     const fracao = a.F / soma;
     const bruto = N * fracao;
     const cobertura = n[i] * la;
     return {
-      ...a, fracao, bruto, pedido: pedido[i], antes: antes[i], n: n[i], ordem: ordem.indexOf(i) + 1,
+      ...a, fracao, bruto, n: n[i], ordem: ordem.indexOf(i) + 1,
       cobertura, cabe: cobertura <= a.L, termo: a.F * a.L, ganho: la * a.F * n[i], solRestante: a.L - la * n[i]
     };
   });
@@ -325,5 +315,5 @@ export function testeMesaProporcional({ la, N, arestas, somaF }) {
   const somaBruto = linhas.reduce((s, x) => s + x.bruto, 0);
   const somaN = linhas.reduce((s, x) => s + x.n, 0);
   const jNovoDireto = linhas.reduce((s, x) => s + x.F * x.solRestante, 0);
-  return { la, N, soma, linhas, ordem, restante, j1, ganho, jNovo: j1 - ganho, somaBruto, somaN, jNovoDireto };
+  return { la, N, soma, linhas, ordem, j1, ganho, jNovo: j1 - ganho, somaBruto, somaN, jNovoDireto };
 }
