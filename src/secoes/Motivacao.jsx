@@ -17,7 +17,7 @@ export default function Motivacao() {
         <blockquote className="pergunta">
           <p className="eyebrow">A pergunta que queremos responder</p>
           <p className="pergunta__texto">
-            Como reduzir o sofrimento causado pela exposição ao sol de quem caminha em Fortaleza, e por onde começar?
+            Se eu tivesse um X número de arvores, onde plantá-las com o objetivo de reduzir o sofrimento causado pela exposição ao sol de quem caminha em Fortaleza, e por onde começar?
           </p>
         </blockquote>
       </div>

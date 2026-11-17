@@ -510,7 +510,7 @@ h2 {
 
 .equation {
   overflow: visible;
-  padding: 14px 20px;
+  padding: 20px 28px;
   color: var(--ink);
   background: var(--green-light);
   font-size: clamp(1rem, 2.2vw, 1.25rem);
@@ -518,7 +518,11 @@ h2 {
 
 .model-part > .equation { grid-column: 3; }
 
-.equation mjx-container { margin: .3em 0 !important; }
+.equation mjx-container {
+  margin: .3em 0 !important;
+  padding-block: .15em;
+  overflow: visible !important;
+}
 
 .constraints { grid-column: 3; }
 
@@ -962,6 +966,9 @@ h2 {
 
 .equacao-destaque {
   margin: 0;
+  padding-block: 10px;
   font-size: 1.15rem;
-  overflow-x: auto;
+  overflow: visible;
 }
+
+.equacao-destaque mjx-container { overflow: visible !important; }

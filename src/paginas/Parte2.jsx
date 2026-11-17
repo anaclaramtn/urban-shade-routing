@@ -47,8 +47,7 @@ export default function Parte2() {
         Com N árvores, onde plantá-las para que as pessoas caminhem menos no sol? Elas devem acompanhar o fluxo de gente: o Modelo 1 faz isso na rua inteira; o Modelo 2, só no trecho que está ao sol.
       </TopoParte>
 
-      <Metodologia id="metodologia" titulo="A ideia"
-        intro="Da exposição ao sol até a regra de plantio, em três passos.">
+      <Metodologia id="metodologia" titulo="A ideia inicial">
         <PassoAPasso passos={PASSOS_IDEIA} />
       </Metodologia>
 

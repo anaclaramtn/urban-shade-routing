@@ -26,7 +26,7 @@ export default function Tecnica() {
       <div className="shell">
         <header className="section-heading section-heading--split">
           <div className="section-heading__body">
-            <p className="eyebrow">Bastidores</p>
+            <p className="eyebrow">A alternativa para organizar tudo visualmente</p>
             <h2 id="tecnica-titulo">Como o site é feito</h2>
           </div>
           <p className="section-heading__intro">

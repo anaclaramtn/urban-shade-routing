@@ -14,6 +14,7 @@ export function TesteDeMesa({ titulo, enunciado, children }) {
   const [ativa, setAtiva] = useState(0);
   const total = etapas.length;
   const atual = etapas[ativa];
+
   return (
     <div className="mesa">
       <h3 className="mesa__titulo">{titulo}</h3>
